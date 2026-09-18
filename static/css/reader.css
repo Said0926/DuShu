@@ -40,6 +40,9 @@
 .page__actions {
   display: flex;
   gap: var(--space-3);
+  /* Без переноса две кнопки не помещаются на узком экране и распирают
+     страницу шире вьюпорта. */
+  flex-wrap: wrap;
 }
 
 /* Кнопки будущих этапов видно, но нажать нельзя. */
@@ -278,5 +281,29 @@
     top: auto;
     width: auto;
     transform: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding-left: var(--space-3);
+    padding-right: var(--space-3);
+  }
+
+  /* Кнопки во всю ширину: рядом они не помещаются. */
+  .page__actions {
+    width: 100%;
+  }
+
+  .page__actions .btn {
+    flex: 1;
+  }
+
+  .canvas {
+    padding: var(--space-4);
+  }
+
+  .panel {
+    padding: var(--space-4);
   }
 }

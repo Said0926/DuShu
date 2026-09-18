@@ -505,3 +505,42 @@ ul {
     padding: 72px var(--page-gutter);
   }
 }
+
+/* Телефоны. Отдельно от 900px: там достаточно убрать вордмарк, а здесь уже
+   не помещается сама навигация, и она распирает страницу шире экрана. */
+@media (max-width: 600px) {
+  .site-header {
+    gap: var(--space-2);
+    padding: 0 var(--space-3);
+  }
+
+  .nav {
+    gap: var(--space-3);
+  }
+
+  .nav__link {
+    font-size: var(--text-caption);
+  }
+
+  .avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  /* Подвал в две строки: в одну атрибуция словарей не помещается. */
+  .site-footer {
+    height: auto;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+    padding: var(--space-5) var(--space-3);
+  }
+
+  .input-card {
+    padding: var(--space-3);
+  }
+
+  .input-card__field {
+    padding: var(--space-3);
+  }
+}

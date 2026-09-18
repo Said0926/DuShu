@@ -171,3 +171,20 @@
     margin-top: 40px;
   }
 }
+
+@media (max-width: 600px) {
+  /* 42px не помещается в строку на телефоне и растягивает страницу. */
+  .hero__title {
+    font-size: 30px;
+  }
+
+  .home {
+    padding-left: var(--space-3);
+    padding-right: var(--space-3);
+  }
+
+  .preview__canvas,
+  .feature {
+    padding: var(--space-4);
+  }
+}
