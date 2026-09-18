@@ -121,7 +121,7 @@ docker compose exec web python manage.py import_bkrs <path>
 - [x] **1. CLAUDE.md проекта** — правила, команды, трекер
 - [x] **2. Скелет** — settings, кастомный User, `base.html`, дизайн-система, главная, Docker, ruff, pre-commit, CI
 - [x] **3. `chinese`** — разбиение на предложения, сегментация, пиньинь, тоны + тесты
-- [ ] **4. `dictionary`** — модель, импорт CC-CEDICT и БКРС, поиск + тесты
+- [x] **4. `dictionary`** — модель, импорт CC-CEDICT и БКРС, поиск + тесты
 - [ ] **5. `translation` + «Чтение»** — провайдеры, кэш переводов, страница, подсказки, настройки
 - [ ] **6. Авторизация** — allauth, `UserSettings`, rate limiting
 - [ ] **7. `library`** — сохранённые тексты
@@ -170,7 +170,23 @@ git checkout main && git pull
 
 ## Лицензии словарей
 
-- **CC-CEDICT** — CC BY-SA 3.0. Атрибуция обязательна: в подвале сайта и в README.
+- **CC-CEDICT** — CC BY-SA 4.0 (версия указана в шапке самого дампа; на сайте проекта
+  до сих пор написано 3.0). Атрибуция обязательна: в подвале сайта и в README.
 - **БКРС** — правообладатели разрешают: «Базы можно использовать свободно в любых целях.
   Можно указать данный сайт как источник» (bkrs.info/p47). Это не формальная OSI-лицензия,
   а явное разрешение. Атрибуцию ставим. При коммерческом использовании стоит написать им.
+
+Дампы качаются вручную в `data/` (папка в `.gitignore`):
+
+```bash
+curl -L -o data/cedict.txt.gz \
+  https://www.mdbg.net/chinese/export/cedict/cedict_1_0_ts_utf-8_mdbg.txt.gz
+curl -L -o data/dabkrs.gz https://bkrs.info/downloads/daily/dabkrs_<ГГММДД>.gz
+
+docker compose exec web python manage.py import_cedict data/cedict.txt.gz
+docker compose exec web python manage.py import_bkrs data/dabkrs.gz
+```
+
+Обе команды читают `.gz` без распаковки и безопасны при повторном запуске.
+Флаг `--replace` нужен при обновлении дампа: без него изменившиеся записи
+будут отброшены как дубликаты, а устаревшие останутся.
