@@ -120,7 +120,7 @@ docker compose exec web python manage.py import_bkrs <path>
 
 - [x] **1. CLAUDE.md проекта** — правила, команды, трекер
 - [x] **2. Скелет** — settings, кастомный User, `base.html`, дизайн-система, главная, Docker, ruff, pre-commit, CI
-- [ ] **3. `chinese`** — разбиение на предложения, сегментация, пиньинь, тоны + тесты
+- [x] **3. `chinese`** — разбиение на предложения, сегментация, пиньинь, тоны + тесты
 - [ ] **4. `dictionary`** — модель, импорт CC-CEDICT и БКРС, поиск + тесты
 - [ ] **5. `translation` + «Чтение»** — провайдеры, кэш переводов, страница, подсказки, настройки
 - [ ] **6. Авторизация** — allauth, `UserSettings`, rate limiting
