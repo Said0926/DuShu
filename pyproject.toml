@@ -41,4 +41,8 @@ testpaths = ["tests"]
 # окружения DJANGO_SETTINGS_MODULE из .env. Через ключ DJANGO_SETTINGS_MODULE
 # этого добиться нельзя: у ini-настройки приоритет ниже, чем у окружения,
 # и тесты молча уезжали бы на настройки разработки.
-addopts = "-ra --ds=config.settings.test"
+# --import-mode=importlib позволяет иметь одноимённые файлы в разных папках
+# (tests/core/test_views.py и tests/reader/test_views.py). При старом режиме
+# импорта они конфликтуют, и pytest требует либо уникальных имён, либо
+# __init__.py в каждой папке тестов.
+addopts = "-ra --ds=config.settings.test --import-mode=importlib"
