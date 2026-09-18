@@ -26,6 +26,12 @@ from .forms import ReaderForm
 
 logger = logging.getLogger(__name__)
 
+# Предел длины слова в подсказке. Самые длинные словарные статьи — несколько
+# иероглифов, так что ограничение щедрое. Нужно оно потому, что при промахе
+# по слову сервис разворачивает его в запрос по каждому иероглифу, а endpoint
+# открыт без авторизации и пока без ограничения частоты запросов.
+MAX_LOOKUP_WORD_LENGTH = 32
+
 
 def _translate_or_warn(processed: ProcessedText, language: str) -> tuple[list[str], str]:
     """Translate every sentence, degrading to no translation on failure.
@@ -124,6 +130,12 @@ class LookupView(View):
         if not word:
             return JsonResponse(
                 {"data": None, "error": "missing_word", "message": "Не передано слово."},
+                status=400,
+            )
+
+        if len(word) > MAX_LOOKUP_WORD_LENGTH:
+            return JsonResponse(
+                {"data": None, "error": "word_too_long", "message": "Слишком длинное слово."},
                 status=400,
             )
 

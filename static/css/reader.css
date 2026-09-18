@@ -263,7 +263,8 @@
     position: static;
   }
 
-  .reader {
+  /* :not([data-size]) — выбор пользователя важнее умолчания для узкого экрана. */
+  .reader:not([data-size]) {
     font-size: var(--reader-sm);
   }
 

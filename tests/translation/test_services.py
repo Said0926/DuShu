@@ -151,3 +151,36 @@ def test_sentence_hash_ignores_surrounding_whitespace() -> None:
 
 def test_sentence_hash_differs_for_different_text() -> None:
     assert sentence_hash("你好。") != sentence_hash("再见。")
+
+
+class TestProviderContractViolations:
+    """A provider that breaks its contract must not produce a 500."""
+
+    def test_provider_returning_too_few_translations(self) -> None:
+        sloppy = Mock()
+        sloppy.translate.return_value = ["только один"]
+
+        with patch("apps.translation.services.get_provider", return_value=sloppy):
+            with pytest.raises(TranslationError, match="1 translations"):
+                translate_sentences(["一。", "二。"], "ru")
+
+    def test_provider_returning_too_many_translations(self) -> None:
+        sloppy = Mock()
+        sloppy.translate.return_value = ["один", "два", "три"]
+
+        with patch("apps.translation.services.get_provider", return_value=sloppy):
+            with pytest.raises(TranslationError):
+                translate_sentences(["一。", "二。"], "ru")
+
+    @override_settings(TRANSLATION_PROVIDER="apps.translation.models.sentence_hash")
+    def test_setting_pointing_at_something_that_is_not_a_provider(self) -> None:
+        """The path imports fine but calling it does not give a provider."""
+        with pytest.raises(TranslationError, match="not a usable provider"):
+            get_provider()
+
+
+def test_tests_never_use_the_real_provider() -> None:
+    """Guard against a test quietly making billed DeepL calls."""
+    from django.conf import settings as django_settings
+
+    assert "dummy" in django_settings.TRANSLATION_PROVIDER.lower()

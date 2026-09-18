@@ -19,11 +19,6 @@ if (readerElement && store) {
     hints: "hints-off",
   };
 
-  const FONT_SIZES = {
-    sm: "var(--reader-sm)",
-    md: "var(--reader-md)",
-    lg: "var(--reader-lg)",
-  };
 
   /**
    * Применяет состояние переключателя к тексту.
@@ -41,14 +36,15 @@ if (readerElement && store) {
   /**
    * Применяет размер шрифта.
    *
-   * Это единственное место, где JS трогает style напрямую. Альтернатива —
-   * три класса-модификатора, но размеры уже заданы переменными в tokens.css,
-   * и дублировать их в CSS ради этого не хочется.
+   * Через data-атрибут, а не через style: инлайновый стиль сильнее любого
+   * правила в CSS, поэтому он перебивал бы и медиазапрос, который на телефоне
+   * уменьшает текст. Заодно это соблюдает общее правило — JS меняет только
+   * классы и data-атрибуты.
    *
    * @param {string} size — sm, md или lg
    */
   function applyFontSize(size) {
-    readerElement.style.fontSize = FONT_SIZES[size] || FONT_SIZES.md;
+    readerElement.dataset.size = size;
   }
 
   // --- восстановление сохранённых настроек ---
@@ -66,10 +62,15 @@ if (readerElement && store) {
     void className;
   }
 
-  const savedSize = store.readSetting("fontSize", "md");
-  applyFontSize(savedSize);
+  // Если пользователь размер не выбирал, атрибут не ставим: тогда действует
+  // значение из CSS, а на узком экране — уменьшенное из медиазапроса.
+  const savedSize = store.readSetting("fontSize", null);
+  if (savedSize) {
+    applyFontSize(savedSize);
+  }
+
   for (const button of document.querySelectorAll("#font-size .segmented__item")) {
-    const isActive = button.dataset.value === savedSize;
+    const isActive = button.dataset.value === (savedSize || "md");
     button.classList.toggle("is-active", isActive);
     button.setAttribute("aria-pressed", String(isActive));
   }

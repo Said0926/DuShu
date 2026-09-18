@@ -140,11 +140,14 @@ if (reader) {
    * @param {HTMLElement} word
    */
   async function openTooltip(word) {
+    // Закрываем предыдущую в любом случае, в том числе когда подсказки
+    // выключены: иначе уже открытая осталась бы висеть на экране.
+    closeTooltip();
+
     if (reader.classList.contains("hints-off")) {
       return;
     }
 
-    closeTooltip();
     activeWord = word;
     word.classList.add("is-active");
 
@@ -209,6 +212,15 @@ if (reader) {
     const word = event.target.closest(".word");
     if (word) {
       openTooltip(word);
+    }
+  });
+
+  // Парный обработчик обязателен: при уходе фокуса с последнего слова
+  // мыши здесь нет, и закрыть подсказку больше некому.
+  reader.addEventListener("focusout", (event) => {
+    const word = event.target.closest(".word");
+    if (word && !word.contains(event.relatedTarget)) {
+      closeTooltip();
     }
   });
 }

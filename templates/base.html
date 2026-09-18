@@ -60,6 +60,9 @@
 
   {% comment %} defer — скрипт скачивается параллельно с разбором HTML и выполняется после него,
      поэтому DOM уже доступен и не нужен обработчик DOMContentLoaded. {% endcomment %}
+  {% comment %} settings-store.js идёт первым: остальные скрипты читают из него
+     сохранённые настройки, а defer сохраняет порядок выполнения. {% endcomment %}
+  <script src="{% static 'js/settings-store.js' %}" defer></script>
   <script src="{% static 'js/controls.js' %}" defer></script>
   {% block extra_js %}{% endblock %}
 </body>

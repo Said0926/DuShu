@@ -166,3 +166,21 @@ def test_template_comments_do_not_leak_into_the_page(client: Client) -> None:
     """
     for url in [reverse("core:home"), reverse("reader:read")]:
         assert "{#" not in client.get(url).content.decode()
+
+
+def test_long_word_is_rejected(client: Client) -> None:
+    """The lookup endpoint is public and expands a miss into a per-character query."""
+    response = client.get(reverse("reader:lookup"), {"word": "猫" * 200, "lang": "ru"})
+
+    assert response.status_code == 400
+    assert json.loads(response.content)["error"] == "word_too_long"
+
+
+def test_broken_provider_setting_does_not_crash_the_page(client: Client, settings) -> None:
+    """A misconfigured provider must degrade like any other translation failure."""
+    settings.TRANSLATION_PROVIDER = "apps.reader.views.MAX_LOOKUP_WORD_LENGTH"
+
+    response = client.post(reverse("reader:read"), {"text": "你好。", "lang": "ru"})
+
+    assert response.status_code == 200
+    assert response.context["warning"]

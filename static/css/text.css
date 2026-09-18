@@ -13,6 +13,12 @@
   font-size: var(--reader-md);
 }
 
+/* Размер, выбранный пользователем. data-атрибут, а не инлайновый стиль:
+   инлайн перебил бы медиазапрос, уменьшающий текст на телефоне. */
+.reader[data-size="sm"] { font-size: var(--reader-sm); }
+.reader[data-size="md"] { font-size: var(--reader-md); }
+.reader[data-size="lg"] { font-size: var(--reader-lg); }
+
 /* Строка предложения — flex: на пробелы между инлайн-элементами полагаться нельзя,
    иначе отступы поедут от форматирования HTML. */
 .reader__sentence-line {

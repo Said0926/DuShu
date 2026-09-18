@@ -29,7 +29,17 @@ def get_provider() -> TranslationProvider:
             f"Cannot import TRANSLATION_PROVIDER {settings.TRANSLATION_PROVIDER!r}."
         ) from error
 
-    return provider_class()
+    try:
+        return provider_class()
+    except TranslationError:
+        raise
+    except (TypeError, AttributeError) as error:
+        # Путь ведёт не на класс провайдера, или конструктор не принимает
+        # нулевые аргументы. Это ошибка настройки, а не сбой перевода, но
+        # наружу она должна выйти тем же типом: страница обязана пережить её.
+        raise TranslationError(
+            f"TRANSLATION_PROVIDER {settings.TRANSLATION_PROVIDER!r} is not a usable provider."
+        ) from error
 
 
 def _batched(items: list[str], size: int) -> Iterator[list[str]]:
@@ -83,7 +93,19 @@ def translate_sentences(sentences: list[str], target_lang: str) -> list[str]:
         for batch in _batched(missing, batch_size):
             translations = provider.translate(batch, target_lang)
 
-            for sentence, translation in zip(batch, translations, strict=True):
+            # Провайдер обязан вернуть по переводу на предложение. Свой мы
+            # проверяем, но сторонний может нарушить контракт — тогда strict=True
+            # бросит ValueError, и его нужно превратить в ошибку перевода,
+            # иначе страница упадёт с 500 вместо понятного сообщения.
+            try:
+                pairs = list(zip(batch, translations, strict=True))
+            except ValueError as error:
+                raise TranslationError(
+                    f"Provider returned {len(translations)} translations "
+                    f"for {len(batch)} sentences."
+                ) from error
+
+            for sentence, translation in pairs:
                 by_hash[hashes[sentence]] = translation
                 fresh_rows.append(
                     SentenceTranslation(
