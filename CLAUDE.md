@@ -37,6 +37,29 @@ docker compose exec web python manage.py import_cedict <path>
 docker compose exec web python manage.py import_bkrs <path>
 ```
 
+## Перевод
+
+Провайдер задаётся в `.env` путём к классу:
+
+```bash
+TRANSLATION_PROVIDER=apps.translation.providers.deepl.DeepLProvider   # нужен DEEPL_API_KEY
+TRANSLATION_PROVIDER=apps.translation.providers.dummy.DummyProvider   # заглушка, без ключа
+```
+
+Ключ DeepL Free выглядит как `279a2e9d-83b3-c416-7e2b-f371d29d3caa:fx` — 36 символов
+плюс суффикс `:fx`. Берётся в аккаунте DeepL: Account → API Keys.
+
+Все переводы кэшируются в `SentenceTranslation` по хэшу предложения и языку,
+поэтому повторное открытие текста бесплатно.
+
+Обратная сторона кэша: попадание в него никогда не доходит до провайдера. Если
+в кэше остались заглушки от `DummyProvider`, после подключения ключа их нужно
+сбросить, иначе они так и будут показываться:
+
+```bash
+docker compose exec web python manage.py clear_translation_cache --provider DummyProvider
+```
+
 ## Архитектура
 
 Главное требование — расширяемость. Впереди личные словари с интервальным повторением,
@@ -96,6 +119,29 @@ docker compose exec web python manage.py import_bkrs <path>
 - Доступность: `role="switch"` + `aria-checked` у переключателей, `aria-pressed` у сегментов,
   `aria-label` у иконочных кнопок, видимый фокус.
 
+## Проверка вёрстки
+
+Скриншоты снимаются установленным Chrome, ставить ничего не нужно:
+
+```bash
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --disable-gpu \
+  --screenshot=/tmp/shot.png --window-size=1440,900 --virtual-time-budget=4000 \
+  http://localhost:8000/reader/
+```
+
+Две ловушки, на которые уже попадались:
+
+- **Chrome не делает окно уже 500px.** Скриншот с `--window-size=375` покажет страницу,
+  отрисованную на 500px, просто обрезанную, и это выглядит как переполнение вёрстки.
+  Для честной проверки адаптива страница грузится в `<iframe width="375">` на широкой
+  странице-обёртке.
+- **Страницу с результатом не получить через GET.** Ответ сохраняется curl-ом с CSRF-токеном
+  во временный файл внутри `static/`, открывается по `/static/...` (тогда пути к CSS рабочие)
+  и удаляется сразу после проверки.
+
+Интерактив (переключатели, подсказки) проверяется скриптом-зондом, который дописывается
+в сохранённый HTML: он кликает по элементам и печатает результат на страницу.
+
 ## Соглашения по коду
 
 - Код, имена и docstrings — **на английском**. Комментарии — **на русском**, и только там,
@@ -122,7 +168,7 @@ docker compose exec web python manage.py import_bkrs <path>
 - [x] **2. Скелет** — settings, кастомный User, `base.html`, дизайн-система, главная, Docker, ruff, pre-commit, CI
 - [x] **3. `chinese`** — разбиение на предложения, сегментация, пиньинь, тоны + тесты
 - [x] **4. `dictionary`** — модель, импорт CC-CEDICT и БКРС, поиск + тесты
-- [ ] **5. `translation` + «Чтение»** — провайдеры, кэш переводов, страница, подсказки, настройки
+- [x] **5. `translation` + «Чтение»** — провайдеры, кэш переводов, страница, подсказки, настройки
 - [ ] **6. Авторизация** — allauth, `UserSettings`, rate limiting
 - [ ] **7. `library`** — сохранённые тексты
 - [ ] **8. `tts` + «Shadowing»** — сначала обсуждаем выбор TTS-провайдера, потом код

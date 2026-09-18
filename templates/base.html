@@ -25,7 +25,7 @@
 
     <nav class="nav" aria-label="Основная навигация">
       <a class="nav__link {% if active_nav == 'reader' %}is-active{% endif %}"
-         href="{% url 'core:coming-soon' %}">Чтение</a>
+         href="{% url 'reader:read' %}">Чтение</a>
       <a class="nav__link {% if active_nav == 'shadowing' %}is-active{% endif %}"
          href="{% url 'core:coming-soon' %}">Shadowing</a>
       <a class="nav__link {% if active_nav == 'library' %}is-active{% endif %}"
@@ -40,6 +40,13 @@
   </header>
 
   <main>
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+          <li class="messages__item">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
     {% block content %}{% endblock %}
   </main>
 
@@ -51,8 +58,11 @@
     </span>
   </footer>
 
-  {# defer — скрипт скачивается параллельно с разбором HTML и выполняется после него,
-     поэтому DOM уже доступен и не нужен обработчик DOMContentLoaded. #}
+  {% comment %} defer — скрипт скачивается параллельно с разбором HTML и выполняется после него,
+     поэтому DOM уже доступен и не нужен обработчик DOMContentLoaded. {% endcomment %}
+  {% comment %} settings-store.js идёт первым: остальные скрипты читают из него
+     сохранённые настройки, а defer сохраняет порядок выполнения. {% endcomment %}
+  <script src="{% static 'js/settings-store.js' %}" defer></script>
   <script src="{% static 'js/controls.js' %}" defer></script>
   {% block extra_js %}{% endblock %}
 </body>

@@ -1,0 +1,49 @@
+{% comment %}
+Карточка ввода текста (DESIGN.md §8).
+
+Используется и на главной, и на пустой странице «Чтение», поэтому вынесена
+в отдельный шаблон: разметка у них одна, различаются только заголовок поля
+и текст кнопки.
+
+Параметры:
+    label — подпись над полем;
+    submit_label — надпись на основной кнопке.
+{% endcomment %}
+<form class="input-card" method="post" action="{% url 'reader:read' %}">
+  {% csrf_token %}
+  <div class="input-card__field">
+    <label class="input-card__label" for="id_text">{{ label|default:"Китайский текст" }}</label>
+    <textarea class="input-card__textarea"
+              id="id_text"
+              name="text"
+              rows="4"
+              maxlength="{{ max_text_length }}"
+              data-max-length="{{ max_text_length }}"
+              placeholder="今天天气很好，我打算去公园走走。"></textarea>
+  </div>
+
+  <div class="input-card__footer">
+    <div class="input-card__left">
+      <div class="segmented" role="group" aria-label="Язык перевода">
+        {% for code, label_text in translation_languages.items %}
+          <button class="segmented__item {% if code == default_language %}is-active{% endif %}"
+                  type="button"
+                  aria-pressed="{% if code == default_language %}true{% else %}false{% endif %}"
+                  data-value="{{ code }}">{{ label_text }}</button>
+        {% endfor %}
+      </div>
+      {# Значение проставляет JS, чтобы число форматировалось по-русски: 5 000. #}
+      <span class="input-card__counter" id="char-counter" aria-live="polite"></span>
+    </div>
+
+    <div class="input-card__actions">
+      {% comment %} Shadowing появится на восьмом этапе; кнопку рисуем сразу,
+         чтобы раскладка не поехала, когда она заработает. {% endcomment %}
+      <button class="btn btn--ghost" type="button" disabled>Shadowing</button>
+      <button class="btn btn--primary" type="submit">{{ submit_label|default:"Читать →" }}</button>
+    </div>
+  </div>
+
+  {# Выбранный язык уезжает на сервер обычным полем формы. #}
+  <input type="hidden" name="lang" id="id_lang" value="{{ default_language }}">
+</form>
