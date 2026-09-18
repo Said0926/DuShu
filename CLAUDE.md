@@ -37,6 +37,21 @@ docker compose exec web python manage.py import_cedict <path>
 docker compose exec web python manage.py import_bkrs <path>
 ```
 
+## Перевод
+
+Провайдер задаётся в `.env` путём к классу:
+
+```bash
+TRANSLATION_PROVIDER=apps.translation.providers.deepl.DeepLProvider   # нужен DEEPL_API_KEY
+TRANSLATION_PROVIDER=apps.translation.providers.dummy.DummyProvider   # заглушка, без ключа
+```
+
+Ключ DeepL Free выглядит как `279a2e9d-83b3-c416-7e2b-f371d29d3caa:fx` — 36 символов
+плюс суффикс `:fx`. Берётся в аккаунте DeepL: Account → API Keys.
+
+Все переводы кэшируются в `SentenceTranslation` по хэшу предложения и языку,
+поэтому повторное открытие текста бесплатно.
+
 ## Архитектура
 
 Главное требование — расширяемость. Впереди личные словари с интервальным повторением,
@@ -122,7 +137,7 @@ docker compose exec web python manage.py import_bkrs <path>
 - [x] **2. Скелет** — settings, кастомный User, `base.html`, дизайн-система, главная, Docker, ruff, pre-commit, CI
 - [x] **3. `chinese`** — разбиение на предложения, сегментация, пиньинь, тоны + тесты
 - [x] **4. `dictionary`** — модель, импорт CC-CEDICT и БКРС, поиск + тесты
-- [ ] **5. `translation` + «Чтение»** — провайдеры, кэш переводов, страница, подсказки, настройки
+- [x] **5. `translation` + «Чтение»** — провайдеры, кэш переводов, страница, подсказки, настройки
 - [ ] **6. Авторизация** — allauth, `UserSettings`, rate limiting
 - [ ] **7. `library`** — сохранённые тексты
 - [ ] **8. `tts` + «Shadowing»** — сначала обсуждаем выбор TTS-провайдера, потом код
