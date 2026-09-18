@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Скоро — Dúshū{% endblock %}
+
+{% block content %}
+<div class="stub">
+  <p class="stub__eyebrow">в разработке</p>
+  <h1 class="stub__title">Эта страница ещё не готова</h1>
+  <p class="stub__text">
+    Проект собирается поэтапно. Сейчас готов каркас и дизайн-система: «Чтение» появится
+    на пятом этапе, «Shadowing» — на восьмом.
+  </p>
+  <a class="btn btn--primary" href="{% url 'core:home' %}">На главную</a>
+</div>
+{% endblock %}

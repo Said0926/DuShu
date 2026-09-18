@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dúshū — читай по-китайски{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="home">
+
+  <section class="hero">
+    <p class="hero__eyebrow"><span>пиньинь · перевод · озвучка</span></p>
+    <h1 class="hero__title">Вставь китайский текст —<br>читай его без словаря</h1>
+    <p class="hero__subtitle">
+      Пиньинь над каждым иероглифом, перевод предложений, подсказки по словам при наведении
+      и режим повторения вслух. Без регистрации.
+    </p>
+  </section>
+
+  {# Форма временно ведёт на страницу-заглушку: «Чтение» появится на этапе 5. #}
+  <form class="input-card" method="get" action="{% url 'core:coming-soon' %}">
+    <div class="input-card__field">
+      <label class="input-card__label" for="id_text">Китайский текст</label>
+      <textarea class="input-card__textarea"
+                id="id_text"
+                name="text"
+                rows="4"
+                maxlength="{{ max_text_length }}"
+                data-max-length="{{ max_text_length }}"
+                placeholder="今天天气很好，我打算去公园走走。"></textarea>
+    </div>
+
+    <div class="input-card__footer">
+      <div class="input-card__left">
+        <div class="segmented" role="group" aria-label="Язык перевода">
+          {% for code, label in translation_languages.items %}
+            <button class="segmented__item {% if code == default_language %}is-active{% endif %}"
+                    type="button"
+                    aria-pressed="{% if code == default_language %}true{% else %}false{% endif %}"
+                    data-value="{{ code }}">{{ label }}</button>
+          {% endfor %}
+        </div>
+        {# Значение проставляет JS, чтобы число форматировалось по-русски: 5 000. #}
+        <span class="input-card__counter" id="char-counter" aria-live="polite"></span>
+      </div>
+
+      <div class="input-card__actions">
+        <button class="btn btn--ghost" type="submit" name="mode" value="shadowing">Shadowing</button>
+        <button class="btn btn--primary" type="submit" name="mode" value="reader">Читать →</button>
+      </div>
+    </div>
+
+    {# Выбранный язык уезжает на сервер обычным полем формы. #}
+    <input type="hidden" name="lang" id="id_lang" value="{{ default_language }}">
+  </form>
+
+  <p class="home__note">
+    Без регистрации доступен базовый лимит обработок в час. После входа лимит выше,
+    а настройки и сохранённые тексты остаются в профиле.
+  </p>
+
+  <section class="preview">
+    <header class="preview__header">
+      <h2 class="preview__title">Как выглядит строка чтения</h2>
+      <ul class="tone-legend">
+        <li class="tone-legend__item"><span class="tone-legend__dot tone-1">1</span>ровный</li>
+        <li class="tone-legend__item"><span class="tone-legend__dot tone-2">2</span>восходящий</li>
+        <li class="tone-legend__item"><span class="tone-legend__dot tone-3">3</span>нисх.-восх.</li>
+        <li class="tone-legend__item"><span class="tone-legend__dot tone-4">4</span>нисходящий</li>
+        <li class="tone-legend__item"><span class="tone-legend__dot tone-5">5</span>нейтральный</li>
+      </ul>
+    </header>
+
+    {# Статичный пример разметки из DESIGN.md, раздел 3. Реальную разметку
+       будет собирать шаблон reader'а из данных app chinese. #}
+    <div class="preview__canvas reader">
+      <p class="reader__sentence-line">
+        <button class="word" type="button" data-word="今天" data-pinyin="jīn tiān">
+          <ruby><span class="tone-1">今</span><rt>jīn</rt></ruby><ruby><span class="tone-1">天</span><rt>tiān</rt></ruby>
+        </button><button class="word" type="button" data-word="天气" data-pinyin="tiān qì">
+          <ruby><span class="tone-1">天</span><rt>tiān</rt></ruby><ruby><span class="tone-4">气</span><rt>qì</rt></ruby>
+        </button><button class="word" type="button" data-word="很" data-pinyin="hěn">
+          <ruby><span class="tone-3">很</span><rt>hěn</rt></ruby>
+        </button><button class="word" type="button" data-word="好" data-pinyin="hǎo">
+          <ruby><span class="tone-3">好</span><rt>hǎo</rt></ruby>
+        </button><span class="punct">。</span>
+      </p>
+      <p class="reader__translation">Сегодня очень хорошая погода.</p>
+    </div>
+  </section>
+
+  <section class="features">
+    <article class="feature">
+      <h3 class="feature__title">Пиньинь по словам</h3>
+      <p class="feature__text">
+        Чтение определяется для слова целиком, а не для отдельного иероглифа. Поэтому
+        银行 читается <i>yínháng</i>, а 行走 — <i>xíngzǒu</i>.
+      </p>
+    </article>
+    <article class="feature">
+      <h3 class="feature__title">Словарь внутри</h3>
+      <p class="feature__text">
+        Подсказки берутся из локальной базы CC-CEDICT и БКРС — без обращений к внешним API,
+        поэтому они мгновенные и бесплатные.
+      </p>
+    </article>
+    <article class="feature">
+      <h3 class="feature__title">Караоке-подсветка</h3>
+      <p class="feature__text">
+        В режиме Shadowing подсвечивается слово, которое звучит прямо сейчас, а после каждого
+        предложения делается пауза, чтобы повторить вслух.
+      </p>
+    </article>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'js/home.js' %}" defer></script>
+{% endblock %}

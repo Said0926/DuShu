@@ -1,0 +1,287 @@
+/*
+ * home.css — главная страница (DESIGN.md §8).
+ */
+
+.home {
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 56px var(--page-gutter) 80px;
+}
+
+/* ---------- hero ---------- */
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  text-align: center;
+}
+
+/* Строка капсом между двумя линиями: линии рисуются псевдоэлементами,
+   поэтому в HTML лежит только текст. */
+.hero__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: var(--text-label);
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.hero__eyebrow::before,
+.hero__eyebrow::after {
+  content: "";
+  width: 56px;
+  height: 1px;
+  background: var(--color-line-strong);
+}
+
+.hero__title {
+  font-family: var(--font-display);
+  font-size: var(--text-hero);
+  line-height: 1.02;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.hero__subtitle {
+  max-width: 660px;
+  font-size: 18px;
+  line-height: 1.65;
+  color: var(--color-text-3);
+}
+
+/* ---------- карточка ввода ---------- */
+
+.input-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 960px;
+  margin: 48px auto 0;
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+}
+
+/* Поле темнее карточки — так область ввода читается как «углубление». */
+.input-card__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-bg);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+}
+
+.input-card__label {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: var(--text-label);
+  color: var(--color-text-3);
+}
+
+.input-card__textarea {
+  min-height: 140px;
+  border: none;
+  background: transparent;
+  outline: none;
+  resize: none;
+  font-family: var(--font-cn);
+  font-size: 24px;
+  line-height: 1.75;
+  color: var(--color-text);
+}
+
+.input-card__textarea::placeholder {
+  color: var(--color-placeholder);
+}
+
+.input-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.input-card__left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.input-card__counter {
+  font-size: var(--text-caption);
+  color: var(--color-text-3);
+}
+
+.input-card__actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.home__note {
+  max-width: 960px;
+  margin: var(--space-4) auto 0;
+  font-size: var(--text-caption);
+  color: var(--color-text-3);
+  text-align: center;
+}
+
+/* ---------- превью строки чтения ---------- */
+
+.preview {
+  max-width: 960px;
+  margin: 72px auto 0;
+}
+
+.preview__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+
+.preview__title {
+  font-family: var(--font-display);
+  font-size: var(--text-h1);
+  font-weight: 600;
+}
+
+.tone-legend {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.tone-legend__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-caption);
+  color: var(--color-text-3);
+}
+
+/* Фон квадратика — тот же цвет тона с низкой альфой. currentColor приходит
+   из класса .tone-N, поэтому цвет не дублируется в двух местах. */
+.tone-legend__dot {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, currentColor 16%, transparent);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.preview__canvas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-10) 44px;
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+}
+
+/* ---------- карточки-объяснения ---------- */
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-5);
+  max-width: 960px;
+  margin: 56px auto 0;
+}
+
+.feature {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+}
+
+.feature__title {
+  font-size: var(--text-h3);
+  font-weight: 600;
+}
+
+.feature__text {
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--color-text-3);
+}
+
+.feature__text i {
+  color: var(--color-text-2);
+}
+
+/* ---------- адаптив ---------- */
+
+@media (max-width: 900px) {
+  .home {
+    padding-top: 36px;
+  }
+
+  .hero__title {
+    font-size: 42px;
+  }
+
+  .hero__subtitle {
+    font-size: 16px;
+  }
+
+  .hero__eyebrow::before,
+  .hero__eyebrow::after {
+    width: 24px;
+  }
+
+  .input-card {
+    margin-top: 32px;
+  }
+
+  .input-card__textarea {
+    font-size: 20px;
+  }
+
+  .input-card__footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .input-card__actions .btn {
+    flex: 1;
+  }
+
+  .preview {
+    margin-top: 48px;
+  }
+
+  .preview__canvas {
+    padding: var(--space-6) var(--space-5);
+  }
+
+  /* §9: на мобильном чтение по умолчанию мельче. */
+  .preview__canvas.reader {
+    font-size: var(--reader-sm);
+  }
+
+  .features {
+    grid-template-columns: 1fr;
+    margin-top: 40px;
+  }
+}
