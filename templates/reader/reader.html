@@ -13,20 +13,31 @@
   <header class="page__header">
     <div>
       <h1 class="page__title">Чтение</h1>
-      <p class="page__meta">{{ rows|length }} предложени{{ rows|length|pluralize:"е,я,й" }}</p>
+      {% if rows %}
+        <p class="page__meta">{{ rows|length }} предложени{{ rows|length|pluralize:"е,я,й" }}</p>
+      {% endif %}
     </div>
-    <div class="page__actions">
-      {# Обе кнопки появятся по-настоящему на этапах 7 и 8. Рисуем их сразу,
-         чтобы шапка не поехала, когда они заработают. #}
-      <button class="btn btn--ghost" type="button" disabled>Сохранить в библиотеку</button>
-      <button class="btn btn--primary" type="button" disabled>Открыть в Shadowing</button>
-    </div>
+    {% if rows %}
+      <div class="page__actions">
+        {# Обе кнопки появятся по-настоящему на этапах 7 и 8. Рисуем их сразу,
+           чтобы шапка не поехала, когда они заработают. #}
+        <button class="btn btn--ghost" type="button" disabled>Сохранить в библиотеку</button>
+        <button class="btn btn--primary" type="button" disabled>Открыть в Shadowing</button>
+      </div>
+    {% endif %}
   </header>
 
   {% if warning %}
     <p class="notice">{{ warning }}</p>
   {% endif %}
 
+  {% if not rows %}
+    <p class="page__intro">
+      Вставьте китайский текст — над иероглифами появится пиньинь, под предложениями перевод,
+      а по наведению на слово его значение из словаря.
+    </p>
+    {% include "includes/text_input_card.html" with label="Текст для чтения" submit_label="Читать →" %}
+  {% else %}
   <div class="page__body">
 
     {# Класс reader несёт настройки отображения: JS переключает на нём
@@ -122,10 +133,15 @@
     </aside>
 
   </div>
+  {% endif %}
 </div>
 {% endblock %}
 
 {% block extra_js %}
+  {% if not rows %}
+    {# Счётчик символов у карточки ввода — тот же, что на главной. #}
+    <script src="{% static 'js/home.js' %}" defer></script>
+  {% endif %}
   <script src="{% static 'js/settings-store.js' %}" defer></script>
   <script src="{% static 'js/tooltip.js' %}" defer></script>
   <script src="{% static 'js/reader.js' %}" defer></script>

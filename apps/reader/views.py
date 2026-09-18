@@ -54,8 +54,20 @@ class ReaderView(View):
     """Renders a submitted text for reading."""
 
     def get(self, request: HttpRequest) -> HttpResponse:
-        """Send users to the landing page, which is where the input form lives."""
-        return redirect("core:home")
+        """Show the empty state with the input form.
+
+        The page has its own URL and its own entry point, so following "Чтение"
+        in the navigation lands somewhere that makes sense instead of bouncing
+        back to the landing page.
+        """
+        context: dict[str, Any] = {
+            "rows": [],
+            "max_text_length": settings.MAX_TEXT_LENGTH,
+            "translation_languages": settings.TRANSLATION_LANGUAGES,
+            "default_language": settings.DEFAULT_TRANSLATION_LANGUAGE,
+            "active_nav": "reader",
+        }
+        return render(request, "reader/reader.html", context)
 
     def post(self, request: HttpRequest) -> HttpResponse:
         form = ReaderForm(request.POST)

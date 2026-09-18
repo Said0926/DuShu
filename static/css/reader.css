@@ -38,6 +38,14 @@
   cursor: not-allowed;
 }
 
+.page__intro {
+  max-width: 660px;
+  margin-bottom: var(--space-6);
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--color-text-3);
+}
+
 .notice {
   margin-bottom: var(--space-5);
   padding: var(--space-3) var(--space-4);

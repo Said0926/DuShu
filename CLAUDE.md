@@ -52,6 +52,14 @@ TRANSLATION_PROVIDER=apps.translation.providers.dummy.DummyProvider   # загл
 Все переводы кэшируются в `SentenceTranslation` по хэшу предложения и языку,
 поэтому повторное открытие текста бесплатно.
 
+Обратная сторона кэша: попадание в него никогда не доходит до провайдера. Если
+в кэше остались заглушки от `DummyProvider`, после подключения ключа их нужно
+сбросить, иначе они так и будут показываться:
+
+```bash
+docker compose exec web python manage.py clear_translation_cache --provider DummyProvider
+```
+
 ## Архитектура
 
 Главное требование — расширяемость. Впереди личные словари с интервальным повторением,

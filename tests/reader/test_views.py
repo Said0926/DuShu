@@ -34,11 +34,20 @@ class TestReaderView:
     def _dummy_provider(self, settings: pytest.FixtureRequest) -> None:
         settings.TRANSLATION_PROVIDER = DUMMY
 
-    def test_get_sends_users_to_the_form(self, client: Client) -> None:
+    def test_get_shows_the_empty_state_with_the_form(self, client: Client) -> None:
+        """Following "Чтение" in the navigation has to land somewhere usable."""
         response = client.get(reverse("reader:read"))
 
-        assert response.status_code == 302
-        assert response.url == reverse("core:home")
+        assert response.status_code == 200
+        assert response.context["rows"] == []
+        assert 'name="text"' in response.content.decode()
+
+    def test_empty_state_offers_every_language(self, client: Client) -> None:
+        response = client.get(reverse("reader:read"))
+        html = response.content.decode()
+
+        for label in response.context["translation_languages"].values():
+            assert label in html
 
     def test_post_renders_the_text(self, client: Client) -> None:
         response = client.post(reverse("reader:read"), {"text": "我打算去银行。", "lang": "ru"})
