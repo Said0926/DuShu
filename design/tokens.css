@@ -1,0 +1,106 @@
+/*
+ * Dúshū — design tokens (dark "focus" theme)
+ * Single source of truth for colors, type, spacing and radii.
+ * Import this file first, before any component stylesheet.
+ */
+
+:root {
+  /* ---- surfaces ---- */
+  --color-bg: #101317;          /* page background */
+  --color-panel: #14181D;       /* reading surface, shadowing stage */
+  --color-surface: #171B20;     /* sidebars, cards */
+  --color-surface-2: #1E232A;   /* segmented controls, popovers, avatars */
+
+  /* ---- lines ---- */
+  --color-line: #232830;        /* dividers, card borders */
+  --color-line-strong: #2B313A; /* control borders, ghost buttons */
+  --color-line-pop: #39414C;    /* popover border */
+
+  /* ---- text ---- */
+  --color-text: #ECE8E1;        /* primary */
+  --color-text-2: #A2AAB4;      /* secondary, nav links */
+  --color-text-3: #8D96A1;      /* captions, labels */
+  --color-text-4: #7E8894;      /* timers, counters */
+  --color-punct: #6E7784;       /* chinese punctuation inside text */
+
+  /* ---- accent ---- */
+  --color-accent: #E2694C;
+  --color-accent-hover: #F08869;
+  --color-accent-soft: rgba(226, 105, 76, 0.16); /* hovered / active word */
+  --color-accent-strong: rgba(226, 105, 76, 0.20); /* karaoke highlight */
+  --color-on-accent: #101317;   /* text on an accent fill */
+
+  /* ---- tones (used by .tone-1 … .tone-5) ---- */
+  --tone-1: #6FB0F2;  /* level */
+  --tone-2: #5FD19B;  /* rising */
+  --tone-3: #E8C15C;  /* falling-rising */
+  --tone-4: #F0729B;  /* falling */
+  --tone-5: #8A9199;  /* neutral */
+
+  /* ---- controls ---- */
+  --switch-off: #262C34;
+  --switch-knob-off: #7E8894;
+
+  /* ---- typography ---- */
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-ui: 'Manrope', system-ui, -apple-system, sans-serif;
+  --font-cn: 'Noto Serif SC', Georgia, serif;
+
+  --text-hero: 78px;      /* landing h1, line-height 1.02 */
+  --text-h1: 34px;        /* page title, display font */
+  --text-h3: 17px;
+  --text-body: 16px;
+  --text-ui: 15px;
+  --text-sm: 14px;
+  --text-caption: 13px;
+  --text-label: 12px;     /* uppercase, letter-spacing .12em */
+
+  /* reading sizes — the font-size switcher writes one of these onto .reader */
+  --reader-sm: 26px;
+  --reader-md: 32px;
+  --reader-lg: 40px;
+  --ruby-ratio: 0.42;     /* rt font-size, relative to the hanzi (em) */
+
+  /* ---- spacing ---- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-16: 64px;       /* page gutter on desktop */
+
+  /* ---- radii ---- */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 20px;
+  --radius-pill: 13px;
+
+  /* ---- elevation ---- */
+  --shadow-card: 0 28px 70px rgba(0, 0, 0, 0.50);
+  --shadow-popover: 0 18px 44px rgba(0, 0, 0, 0.62);
+  --shadow-accent: 0 12px 30px rgba(226, 105, 76, 0.28);
+
+  /* ---- fixed sizes ---- */
+  --nav-height: 76px;
+  --control-height: 44px;   /* buttons, pills, steppers */
+  --switch-width: 46px;
+  --switch-height: 26px;
+}
+
+/* Tone classes — applied to every syllable by the chinese app. */
+.tone-1 { color: var(--tone-1); }
+.tone-2 { color: var(--tone-2); }
+.tone-3 { color: var(--tone-3); }
+.tone-4 { color: var(--tone-4); }
+.tone-5 { color: var(--tone-5); }
+
+/* "Tone colors off" — one class on the reading container wins over the rest. */
+.tones-off .tone-1,
+.tones-off .tone-2,
+.tones-off .tone-3,
+.tones-off .tone-4,
+.tones-off .tone-5 { color: var(--color-text); }
