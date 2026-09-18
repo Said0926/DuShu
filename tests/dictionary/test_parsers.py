@@ -124,8 +124,25 @@ class TestBkrsParser:
     def test_skips_the_file_header(self) -> None:
         entries = list(parse_bkrs(FIXTURES / "bkrs_sample.txt"))
 
-        assert len(entries) == 4
+        assert len(entries) == 7
         assert all(not e.simplified.startswith("#") for e in entries)
+
+    def test_dsl_escapes_are_removed(self) -> None:
+        """A leftover backslash made 公园 read as "1) \\ парк" — 21k entries were affected."""
+        entries = {e.simplified: e for e in parse_bkrs(FIXTURES / "bkrs_sample.txt")}
+
+        assert entries["公园"].definitions == ["1) парк", "2) казённые земли"]
+
+    def test_space_left_by_an_escape_is_closed_up(self) -> None:
+        entries = {e.simplified: e for e in parse_bkrs(FIXTURES / "bkrs_sample.txt")}
+
+        assert entries["歪曲"].definitions == ["извращать; искажать"]
+
+    def test_stray_backslash_is_dropped(self) -> None:
+        """A doubled backslash in the dump leaves one behind; it means nothing here."""
+        entries = {e.simplified: e for e in parse_bkrs(FIXTURES / "bkrs_sample.txt")}
+
+        assert entries["口探"].definitions == ["оральное измерение"]
 
 
 class TestMergeDuplicates:

@@ -30,6 +30,13 @@ _SENSE_START = re.compile(r"\[m\d*\]")
 # Любой оставшийся тег DSL.
 _ANY_TAG = re.compile(r"\[/?[^\]]*\]")
 
+# В DSL обратный слэш экранирует следующий символ. После снятия разметки он
+# остаётся висеть в тексте: 公园 иначе читается как «1) \ парк».
+_ESCAPE = re.compile(r"\\(.)")
+
+# Пробел перед знаком препинания — след от удалённого экранирования.
+_SPACE_BEFORE_PUNCTUATION = re.compile(r"\s+([;,.:!?])")
+
 
 def _clean_definitions(raw: str) -> list[str]:
     """Strip DSL markup and split the line into separate senses.
@@ -44,7 +51,15 @@ def _clean_definitions(raw: str) -> list[str]:
 
     senses: list[str] = []
     for piece in _SENSE_START.split(without_examples):
-        cleaned = _ANY_TAG.sub("", piece).strip()
+        cleaned = _ANY_TAG.sub("", piece)
+        cleaned = _ESCAPE.sub(r"\1", cleaned)
+        # После снятия экранирования остаются одиночные слэши от \\ в исходнике.
+        # В русском и английском тексте они ничего не значат.
+        cleaned = cleaned.replace("\\", "")
+        # Схлопываем пробелы, оставшиеся на месте снятой разметки.
+        cleaned = _SPACE_BEFORE_PUNCTUATION.sub(r"\1", cleaned)
+        cleaned = " ".join(cleaned.split())
+
         if cleaned:
             senses.append(cleaned)
 
