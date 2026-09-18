@@ -1,0 +1,13 @@
+# CC-CEDICT
+#! version=1
+#! subversion=0
+銀行 银行 [yin2 hang2] /bank/CL:家[jia1],個|个[ge4]/
+女 女 [nu:3] /female/woman/
+㑺 俊 [jun4] /old variant of 俊[jun4]/
+俊 俊 [jun4] /smart/eminent/handsome/
+儁 俊 [jun4] /variant of 俊[jun4]/
+11區 11区 [11 Qu1] /(ACG) Japan/
+你好 你好 [ni3 hao3] /hello/hi/
+行 行 [xing2] /to walk/OK/
+行 行 [hang2] /row/line of business/
+сломанная строка без формата
