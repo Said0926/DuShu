@@ -19,8 +19,8 @@
     </p>
   </section>
 
-  {# Форма временно ведёт на страницу-заглушку: «Чтение» появится на этапе 5. #}
-  <form class="input-card" method="get" action="{% url 'core:coming-soon' %}">
+  <form class="input-card" method="post" action="{% url 'reader:read' %}">
+    {% csrf_token %}
     <div class="input-card__field">
       <label class="input-card__label" for="id_text">Китайский текст</label>
       <textarea class="input-card__textarea"
@@ -47,8 +47,10 @@
       </div>
 
       <div class="input-card__actions">
-        <button class="btn btn--ghost" type="submit" name="mode" value="shadowing">Shadowing</button>
-        <button class="btn btn--primary" type="submit" name="mode" value="reader">Читать →</button>
+        {# Shadowing появится на восьмом этапе; кнопку рисуем сразу,
+           чтобы раскладка не поехала, когда она заработает. #}
+        <button class="btn btn--ghost" type="button" disabled>Shadowing</button>
+        <button class="btn btn--primary" type="submit">Читать →</button>
       </div>
     </div>
 

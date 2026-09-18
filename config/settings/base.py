@@ -44,6 +44,8 @@ LOCAL_APPS = [
     "apps.accounts",
     "apps.chinese",
     "apps.dictionary",
+    "apps.translation",
+    "apps.reader",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -122,6 +124,19 @@ TRANSLATION_LANGUAGES = {
     "en": "English",
 }
 DEFAULT_TRANSLATION_LANGUAGE = "ru"
+
+# Провайдер перевода задаётся путём к классу: подменить его можно настройкой,
+# не трогая ни сервисы, ни views. DummyProvider возвращает исходный текст и
+# позволяет работать без ключа и без обращений к платному API.
+TRANSLATION_PROVIDER = env(
+    "TRANSLATION_PROVIDER",
+    default="apps.translation.providers.deepl.DeepLProvider",
+)
+DEEPL_API_KEY = env("DEEPL_API_KEY", default="")
+
+# Сколько предложений отправлять в одном запросе к провайдеру.
+# У DeepL предел — 50 текстов на запрос.
+TRANSLATION_BATCH_SIZE = 50
 
 # --- logging ---
 

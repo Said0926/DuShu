@@ -1,0 +1,252 @@
+/*
+ * reader.css — страница «Чтение» (DESIGN.md §6).
+ * Разметка самой китайской строки живёт в text.css.
+ */
+
+.page {
+  padding: 28px var(--page-gutter) var(--space-10);
+}
+
+.page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-6);
+}
+
+.page__title {
+  font-family: var(--font-display);
+  font-size: var(--text-h1);
+  font-weight: 600;
+}
+
+.page__meta {
+  font-size: var(--text-caption);
+  color: var(--color-text-3);
+}
+
+.page__actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+/* Кнопки будущих этапов видно, но нажать нельзя. */
+.page__actions .btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.notice {
+  margin-bottom: var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-line-strong);
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-size: var(--text-sm);
+  color: var(--color-text-2);
+}
+
+/* align-items: stretch — сайдбар тянется на высоту полотна, а не обрезается
+   по своему содержимому. */
+.page__body {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-8);
+}
+
+.reader {
+  flex: 1;
+  max-width: 960px;
+}
+
+.reader__sentence {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.reader__sentence + .reader__sentence {
+  margin-top: 30px;
+}
+
+/* Латиница и цифры внутри китайского текста: без ruby, но в общем потоке. */
+.latin {
+  font-family: var(--font-ui);
+  font-size: 0.62em;
+}
+
+/* ---------- сайдбар настроек ---------- */
+
+.settings {
+  width: 320px;
+  flex-shrink: 0;
+  align-self: flex-start;
+  position: sticky;
+  /* Прилипает под шапкой, чтобы настройки были под рукой в длинном тексте. */
+  top: var(--space-5);
+}
+
+.settings__label {
+  margin-bottom: var(--space-2);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: var(--text-label);
+  color: var(--color-text-3);
+}
+
+.settings__label:not(:first-child) {
+  margin-top: var(--space-4);
+}
+
+.settings__divider {
+  margin: var(--space-4) 0;
+  border: none;
+  border-top: 1px solid var(--color-line);
+}
+
+.settings__note {
+  margin-top: var(--space-5);
+  font-size: var(--text-caption);
+  line-height: 1.5;
+  color: var(--color-text-4);
+}
+
+/* Кнопки выбора размера показывают свой размер собой же. */
+.segmented__item.size-sm { font-size: 13px; }
+.segmented__item.size-md { font-size: 16px; }
+.segmented__item.size-lg { font-size: 20px; }
+
+/* ---------- легенда тонов ---------- */
+
+.tone-legend--column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.tone-legend--column .tone-legend__item {
+  gap: var(--space-3);
+}
+
+.tone-legend__sample {
+  margin-left: auto;
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+}
+
+/* ---------- подсказка по слову (DESIGN.md §4) ---------- */
+
+.tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 14px);
+  transform: translateX(-50%);
+  z-index: 10;
+  width: 266px;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-line-pop);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-popover);
+  text-align: left;
+  cursor: default;
+}
+
+.tooltip__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.tooltip__word {
+  font-family: var(--font-cn);
+  font-size: 21px;
+  color: var(--color-text);
+}
+
+.tooltip__pinyin {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.tooltip__definition {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text-2);
+}
+
+.tooltip__definition + .tooltip__definition {
+  margin-top: var(--space-1);
+}
+
+/* Разбор по иероглифам, когда слова нет в словаре. */
+.tooltip__character {
+  display: flex;
+  gap: var(--space-2);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--color-text-2);
+}
+
+.tooltip__character + .tooltip__character {
+  margin-top: var(--space-2);
+}
+
+.tooltip__character-hanzi {
+  flex-shrink: 0;
+  font-family: var(--font-cn);
+  font-size: 17px;
+  color: var(--color-text);
+}
+
+.tooltip__note {
+  margin-bottom: var(--space-2);
+  font-family: var(--font-ui);
+  font-size: var(--text-caption);
+  color: var(--color-text-4);
+}
+
+/* ---------- адаптив ---------- */
+
+@media (max-width: 900px) {
+  .page {
+    padding-top: var(--space-5);
+  }
+
+  .page__body {
+    flex-direction: column;
+  }
+
+  .settings {
+    width: 100%;
+    position: static;
+  }
+
+  .reader {
+    font-size: var(--reader-sm);
+  }
+
+  .canvas {
+    padding: var(--space-6) var(--space-5);
+  }
+
+  /* На телефоне подсказка не помещается над словом: прижимаем её к нижнему
+     краю экрана на всю ширину (DESIGN.md §9). */
+  .tooltip {
+    position: fixed;
+    left: var(--space-2);
+    right: var(--space-2);
+    bottom: var(--space-2);
+    top: auto;
+    width: auto;
+    transform: none;
+  }
+}

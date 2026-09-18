@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Чтение — Dúshū{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/reader.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page">
+
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">Чтение</h1>
+      <p class="page__meta">{{ rows|length }} предложени{{ rows|length|pluralize:"е,я,й" }}</p>
+    </div>
+    <div class="page__actions">
+      {# Обе кнопки появятся по-настоящему на этапах 7 и 8. Рисуем их сразу,
+         чтобы шапка не поехала, когда они заработают. #}
+      <button class="btn btn--ghost" type="button" disabled>Сохранить в библиотеку</button>
+      <button class="btn btn--primary" type="button" disabled>Открыть в Shadowing</button>
+    </div>
+  </header>
+
+  {% if warning %}
+    <p class="notice">{{ warning }}</p>
+  {% endif %}
+
+  <div class="page__body">
+
+    {# Класс reader несёт настройки отображения: JS переключает на нём
+       pinyin-off / translation-off / tones-off / hints-off. #}
+    <article class="reader canvas" id="reader" data-lang="{{ language }}">
+      {% for sentence, translation in rows %}
+        <section class="reader__sentence">
+          <p class="reader__sentence-line">
+            {% for word in sentence.words %}
+              {% if word.kind == "chinese" %}
+                <button class="word" type="button"
+                        data-word="{{ word.text }}"
+                        data-pinyin="{{ word.pinyin }}">{% for syllable in word.syllables %}{% if syllable.pinyin %}<ruby><span class="tone-{{ syllable.tone }}">{{ syllable.char }}</span><rt>{{ syllable.pinyin }}</rt></ruby>{% else %}<span class="latin">{{ syllable.char }}</span>{% endif %}{% endfor %}</button>
+              {% elif word.kind == "punct" %}
+                <span class="punct">{{ word.text }}</span>
+              {% else %}
+                <span class="latin">{{ word.text }}</span>
+              {% endif %}
+            {% endfor %}
+          </p>
+          {% if translation %}
+            <p class="reader__translation">{{ translation }}</p>
+          {% endif %}
+        </section>
+      {% endfor %}
+    </article>
+
+    <aside class="settings panel" id="settings">
+      <p class="settings__label">Настройки</p>
+
+      <button class="switch" type="button" role="switch" aria-checked="true" data-setting="pinyin">
+        <span>Пиньинь</span>
+        <span class="switch__track"><span class="switch__knob"></span></span>
+      </button>
+      <button class="switch" type="button" role="switch" aria-checked="true" data-setting="translation">
+        <span>Перевод предложений</span>
+        <span class="switch__track"><span class="switch__knob"></span></span>
+      </button>
+      <button class="switch" type="button" role="switch" aria-checked="true" data-setting="tones">
+        <span>Цвета тонов</span>
+        <span class="switch__track"><span class="switch__knob"></span></span>
+      </button>
+      <button class="switch" type="button" role="switch" aria-checked="true" data-setting="hints">
+        <span>Подсказки по словам</span>
+        <span class="switch__track"><span class="switch__knob"></span></span>
+      </button>
+
+      <hr class="settings__divider">
+
+      <p class="settings__label">Язык перевода</p>
+      {# Смена языка — единственная настройка, которой нужен сервер:
+         меняется и перевод предложений, и источник подсказок. #}
+      <form method="post" action="{% url 'reader:read' %}" id="language-form">
+        {% csrf_token %}
+        <input type="hidden" name="text" value="{{ source_text }}">
+        <input type="hidden" name="lang" id="language-value" value="{{ language }}">
+        <div class="segmented" role="group" aria-label="Язык перевода">
+          {% for code, label in translation_languages.items %}
+            <button class="segmented__item {% if code == language %}is-active{% endif %}"
+                    type="button"
+                    aria-pressed="{% if code == language %}true{% else %}false{% endif %}"
+                    data-value="{{ code }}">{{ label }}</button>
+          {% endfor %}
+        </div>
+      </form>
+
+      <p class="settings__label">Размер шрифта</p>
+      {# Кегль самих кнопок задаётся классами: по DESIGN.md §6 они показывают
+         размер наглядно — 13 / 16 / 20 пикселей. #}
+      <div class="segmented" role="group" aria-label="Размер шрифта" id="font-size">
+        <button class="segmented__item size-sm" type="button" aria-pressed="false"
+                aria-label="Мелкий шрифт" data-value="sm">Аа</button>
+        <button class="segmented__item size-md is-active" type="button" aria-pressed="true"
+                aria-label="Средний шрифт" data-value="md">Аа</button>
+        <button class="segmented__item size-lg" type="button" aria-pressed="false"
+                aria-label="Крупный шрифт" data-value="lg">Аа</button>
+      </div>
+
+      <hr class="settings__divider">
+
+      <p class="settings__label">Тоны</p>
+      <ul class="tone-legend tone-legend--column">
+        <li class="tone-legend__item"><span class="tone-legend__dot tone-1">1</span>ровный<span class="tone-legend__sample tone-1">mā</span></li>
+        <li class="tone-legend__item"><span class="tone-legend__dot tone-2">2</span>восходящий<span class="tone-legend__sample tone-2">má</span></li>
+        <li class="tone-legend__item"><span class="tone-legend__dot tone-3">3</span>нисх.-восх.<span class="tone-legend__sample tone-3">mǎ</span></li>
+        <li class="tone-legend__item"><span class="tone-legend__dot tone-4">4</span>нисходящий<span class="tone-legend__sample tone-4">mà</span></li>
+        <li class="tone-legend__item"><span class="tone-legend__dot tone-5">5</span>нейтральный<span class="tone-legend__sample tone-5">ma</span></li>
+      </ul>
+
+      <p class="settings__note">
+        Настройки сохраняются в браузере. После входа они будут храниться в профиле.
+      </p>
+    </aside>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'js/settings-store.js' %}" defer></script>
+  <script src="{% static 'js/tooltip.js' %}" defer></script>
+  <script src="{% static 'js/reader.js' %}" defer></script>
+{% endblock %}
