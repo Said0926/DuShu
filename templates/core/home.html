@@ -73,21 +73,23 @@
       </ul>
     </header>
 
-    {# Статичный пример разметки из DESIGN.md, раздел 3. Реальную разметку
-       будет собирать шаблон reader'а из данных app chinese. #}
+    {# Статичный пример разметки из DESIGN.md, раздел 3. Разбивка на слова и тоны
+       здесь ровно те, что выдаёт app chinese — превью не должно показывать то,
+       чего не будет на реальной странице. Собирать её из данных начнёт шаблон
+       reader'а на пятом этапе. #}
     <div class="preview__canvas reader">
       <p class="reader__sentence-line">
-        <button class="word" type="button" data-word="今天" data-pinyin="jīn tiān">
-          <ruby><span class="tone-1">今</span><rt>jīn</rt></ruby><ruby><span class="tone-1">天</span><rt>tiān</rt></ruby>
-        </button><button class="word" type="button" data-word="天气" data-pinyin="tiān qì">
-          <ruby><span class="tone-1">天</span><rt>tiān</rt></ruby><ruby><span class="tone-4">气</span><rt>qì</rt></ruby>
-        </button><button class="word" type="button" data-word="很" data-pinyin="hěn">
-          <ruby><span class="tone-3">很</span><rt>hěn</rt></ruby>
-        </button><button class="word" type="button" data-word="好" data-pinyin="hǎo">
-          <ruby><span class="tone-3">好</span><rt>hǎo</rt></ruby>
+        <button class="word" type="button" data-word="我" data-pinyin="wǒ">
+          <ruby><span class="tone-3">我</span><rt>wǒ</rt></ruby>
+        </button><button class="word" type="button" data-word="打算" data-pinyin="dǎ suàn">
+          <ruby><span class="tone-3">打</span><rt>dǎ</rt></ruby><ruby><span class="tone-4">算</span><rt>suàn</rt></ruby>
+        </button><button class="word" type="button" data-word="去" data-pinyin="qù">
+          <ruby><span class="tone-4">去</span><rt>qù</rt></ruby>
+        </button><button class="word" type="button" data-word="公园" data-pinyin="gōng yuán">
+          <ruby><span class="tone-1">公</span><rt>gōng</rt></ruby><ruby><span class="tone-2">园</span><rt>yuán</rt></ruby>
         </button><span class="punct">。</span>
       </p>
-      <p class="reader__translation">Сегодня очень хорошая погода.</p>
+      <p class="reader__translation">Я собираюсь пойти в парк.</p>
     </div>
   </section>
 
