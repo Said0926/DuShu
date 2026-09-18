@@ -1,0 +1,96 @@
+/*
+ * text.css — разметка китайской строки (DESIGN.md §3).
+ *
+ * Отдельный файл, потому что этот слой нужен трём страницам сразу: превью на
+ * главной, «Чтению» и «Shadowing». В base.css ему не место — там общий каркас
+ * интерфейса, а не содержимое текста.
+ */
+
+/* Размер иероглифов задаётся здесь, всё внутри считается в em от него.
+   Поэтому переключатель размера шрифта меняет одно свойство, а пиньинь
+   и межстрочные отступы подстраиваются сами. */
+.reader {
+  font-size: var(--reader-md);
+}
+
+/* Строка предложения — flex: на пробелы между инлайн-элементами полагаться нельзя,
+   иначе отступы поедут от форматирования HTML. */
+.reader__sentence-line {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 3px;
+  row-gap: 20px;
+  align-items: flex-end;
+  font-family: var(--font-cn);
+  line-height: 1.2;
+}
+
+/* Слово — настоящая кнопка: работает Tab и скринридер.
+   Поэтому браузерные стили кнопки сбрасываются полностью. */
+.word {
+  position: relative; /* якорь для всплывающей подсказки (этап 5) */
+  margin: 0;
+  padding: 0 2px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 0.12s;
+}
+
+.word:hover,
+.word.is-active {
+  background: var(--color-accent-soft);
+  box-shadow: inset 0 -2px 0 var(--color-accent);
+}
+
+/* Подсказки выключены — слово перестаёт выглядеть интерактивным. */
+.hints-off .word {
+  cursor: default;
+}
+
+.hints-off .word:hover {
+  background: transparent;
+  box-shadow: none;
+}
+
+ruby {
+  ruby-align: center;
+}
+
+/* 1em внутри rt — это размер иероглифа, поэтому пиньинь всегда пропорционален. */
+rt {
+  font-family: var(--font-ui);
+  font-size: calc(1em * var(--ruby-ratio));
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--color-text-3);
+}
+
+.punct {
+  align-self: flex-end;
+  font-family: var(--font-cn);
+  color: var(--color-punct);
+}
+
+.reader__translation {
+  max-width: 760px;
+  font-family: var(--font-ui);
+  font-size: var(--text-body);
+  line-height: 1.55;
+  color: var(--color-text-3);
+}
+
+/* ---------- переключатели настроек ----------
+   Классы вешаются на контейнер .reader, поэтому переключение не требует
+   перерисовки текста. Класс .tones-off живёт в tokens.css рядом с цветами тонов. */
+
+.pinyin-off rt {
+  display: none;
+}
+
+.translation-off .reader__translation {
+  display: none;
+}

@@ -1,0 +1,364 @@
+/*
+ * base.css — reset, типографика, шапка, подвал и общие контролы.
+ * Подключается после tokens.css и опирается только на его переменные.
+ */
+
+/* Производные значения, которых нет в tokens.css.
+   Они не самостоятельные токены, а следствие правил из DESIGN.md. */
+:root {
+  --page-gutter: var(--space-16);       /* §9: на мобильном становится --space-4 */
+  --color-placeholder: #5F6975;         /* §8: плейсхолдер поля ввода */
+}
+
+/* ---------- reset ---------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  font-size: var(--text-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* main растягивается, поэтому подвал прижат к низу даже на короткой странице. */
+main {
+  flex: 1;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+/* :focus-visible вместо :focus — рамка появляется при навигации с клавиатуры,
+   но не после клика мышью. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* ---------- шапка ---------- */
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  height: var(--nav-height);
+  padding: 0 var(--page-gutter);
+  border-bottom: 1px solid var(--color-line);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.logo__tile {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-family: var(--font-cn);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.logo__wordmark {
+  font-family: var(--font-display);
+  font-size: 25px;
+  font-weight: 600;
+}
+
+.nav {
+  display: flex;
+  gap: var(--space-6);
+}
+
+/* Ссылка тянется на всю высоту шапки, поэтому подчёркивание активного пункта
+   ложится ровно на её нижнюю границу. */
+.nav__link {
+  display: inline-flex;
+  align-items: center;
+  height: var(--nav-height);
+  font-size: var(--text-ui);
+  color: var(--color-text-2);
+  transition: color 0.15s;
+}
+
+.nav__link:hover {
+  color: var(--color-text);
+}
+
+.nav__link.is-active {
+  color: var(--color-text);
+  font-weight: 600;
+  box-shadow: inset 0 -2px 0 var(--color-accent);
+}
+
+.site-header__side {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.quota {
+  font-size: var(--text-caption);
+  color: var(--color-text-3);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-surface-2);
+  color: var(--color-text-2);
+  font-family: var(--font-cn);
+  font-size: 16px;
+}
+
+/* ---------- подвал ---------- */
+
+.site-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  height: 84px;
+  padding: 0 var(--page-gutter);
+  border-top: 1px solid var(--color-line);
+  font-size: var(--text-caption);
+  color: var(--color-text-3);
+}
+
+.site-footer a {
+  color: var(--color-text-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---------- кнопки ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--control-height);
+  padding: 0 var(--space-5);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-size: var(--text-ui);
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.btn--primary {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-weight: 600;
+}
+
+.btn--primary:hover {
+  background: var(--color-accent-hover);
+}
+
+.btn--ghost {
+  background: transparent;
+  border-color: var(--color-line-strong);
+  color: var(--color-text);
+}
+
+.btn--ghost:hover {
+  border-color: var(--color-line-pop);
+}
+
+/* ---------- сегментированный контрол ---------- */
+
+/* 38px сегмент + 3px padding сверху и снизу = 44px, минимальная интерактивная цель. */
+.segmented {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-pill);
+}
+
+.segmented__item {
+  height: 38px;
+  padding: 0 var(--space-4);
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-text-2);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.segmented__item:hover {
+  color: var(--color-text);
+}
+
+.segmented__item.is-active {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-weight: 600;
+}
+
+/* ---------- переключатель ---------- */
+
+.switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 48px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: var(--text-ui);
+  cursor: pointer;
+}
+
+.switch__track {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: var(--switch-width);
+  height: var(--switch-height);
+  padding: 3px;
+  border-radius: 13px;
+  background: var(--switch-off);
+  transition: background-color 0.18s;
+}
+
+.switch__knob {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--switch-knob-off);
+  transition: background-color 0.18s;
+}
+
+/* Состояние держит aria-checked: один источник правды и для CSS, и для скринридера. */
+.switch[aria-checked="true"] .switch__track {
+  justify-content: flex-end;
+  background: var(--color-accent);
+}
+
+.switch[aria-checked="true"] .switch__knob {
+  background: var(--color-on-accent);
+}
+
+/* ---------- поверхности ---------- */
+
+.panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.canvas {
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-10) 44px;
+}
+
+/* ---------- страница-заглушка ---------- */
+
+.stub {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 120px var(--page-gutter);
+  text-align: center;
+}
+
+.stub__eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: var(--text-label);
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.stub__title {
+  font-family: var(--font-display);
+  font-size: var(--text-h1);
+  font-weight: 600;
+}
+
+.stub__text {
+  color: var(--color-text-3);
+}
+
+/* ---------- адаптив ---------- */
+
+@media (max-width: 900px) {
+  :root {
+    --page-gutter: var(--space-4);
+  }
+
+  .site-header {
+    gap: var(--space-4);
+  }
+
+  /* На узком экране в шапке остаётся плитка логотипа без вордмарка,
+     иначе навигация не помещается. */
+  .logo__wordmark,
+  .quota {
+    display: none;
+  }
+
+  .nav {
+    gap: var(--space-4);
+  }
+
+  .nav__link {
+    font-size: var(--text-sm);
+  }
+
+  .stub {
+    padding: 72px var(--page-gutter);
+  }
+}
