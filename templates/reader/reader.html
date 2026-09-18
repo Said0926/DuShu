@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static plural %}
 
 {% block title %}Чтение — Dúshū{% endblock %}
 
@@ -8,19 +8,19 @@
 {% endblock %}
 
 {% block content %}
-<div class="page">
+<div class="page{% if not rows %} page--empty{% endif %}">
 
   <header class="page__header">
     <div>
       <h1 class="page__title">Чтение</h1>
       {% if rows %}
-        <p class="page__meta">{{ rows|length }} предложени{{ rows|length|pluralize:"е,я,й" }}</p>
+        <p class="page__meta">{{ rows|length }} {{ rows|length|plural_ru:"предложение,предложения,предложений" }}</p>
       {% endif %}
     </div>
     {% if rows %}
       <div class="page__actions">
-        {# Обе кнопки появятся по-настоящему на этапах 7 и 8. Рисуем их сразу,
-           чтобы шапка не поехала, когда они заработают. #}
+        {% comment %} Обе кнопки появятся по-настоящему на этапах 7 и 8. Рисуем их сразу,
+           чтобы шапка не поехала, когда они заработают. {% endcomment %}
         <button class="btn btn--ghost" type="button" disabled>Сохранить в библиотеку</button>
         <button class="btn btn--primary" type="button" disabled>Открыть в Shadowing</button>
       </div>
@@ -40,8 +40,8 @@
   {% else %}
   <div class="page__body">
 
-    {# Класс reader несёт настройки отображения: JS переключает на нём
-       pinyin-off / translation-off / tones-off / hints-off. #}
+    {% comment %} Класс reader несёт настройки отображения: JS переключает на нём
+       pinyin-off / translation-off / tones-off / hints-off. {% endcomment %}
     <article class="reader canvas" id="reader" data-lang="{{ language }}">
       {% for sentence, translation in rows %}
         <section class="reader__sentence">
@@ -88,8 +88,8 @@
       <hr class="settings__divider">
 
       <p class="settings__label">Язык перевода</p>
-      {# Смена языка — единственная настройка, которой нужен сервер:
-         меняется и перевод предложений, и источник подсказок. #}
+      {% comment %} Смена языка — единственная настройка, которой нужен сервер:
+         меняется и перевод предложений, и источник подсказок. {% endcomment %}
       <form method="post" action="{% url 'reader:read' %}" id="language-form">
         {% csrf_token %}
         <input type="hidden" name="text" value="{{ source_text }}">
@@ -105,8 +105,8 @@
       </form>
 
       <p class="settings__label">Размер шрифта</p>
-      {# Кегль самих кнопок задаётся классами: по DESIGN.md §6 они показывают
-         размер наглядно — 13 / 16 / 20 пикселей. #}
+      {% comment %} Кегль самих кнопок задаётся классами: по DESIGN.md §6 они показывают
+         размер наглядно — 13 / 16 / 20 пикселей. {% endcomment %}
       <div class="segmented" role="group" aria-label="Размер шрифта" id="font-size">
         <button class="segmented__item size-sm" type="button" aria-pressed="false"
                 aria-label="Мелкий шрифт" data-value="sm">Аа</button>

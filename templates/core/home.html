@@ -38,10 +38,10 @@
       </ul>
     </header>
 
-    {# Статичный пример разметки из DESIGN.md, раздел 3. Разбивка на слова и тоны
+    {% comment %} Статичный пример разметки из DESIGN.md, раздел 3. Разбивка на слова и тоны
        здесь ровно те, что выдаёт app chinese — превью не должно показывать то,
        чего не будет на реальной странице. Собирать её из данных начнёт шаблон
-       reader'а на пятом этапе. #}
+       reader'а на пятом этапе. {% endcomment %}
     <div class="preview__canvas reader">
       <p class="reader__sentence-line">
         <button class="word" type="button" data-word="我" data-pinyin="wǒ">

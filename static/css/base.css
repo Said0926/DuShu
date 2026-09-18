@@ -301,6 +301,112 @@ ul {
   padding: var(--space-10) 44px;
 }
 
+/* ---------- легенда тонов ----------
+   Нужна и превью на главной, и сайдбару «Чтения». */
+
+.tone-legend {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.tone-legend__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-caption);
+  color: var(--color-text-3);
+}
+
+/* Фон квадратика — тот же цвет тона с низкой альфой. currentColor приходит
+   из класса .tone-N, поэтому цвет не дублируется в двух местах. */
+.tone-legend__dot {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, currentColor 16%, transparent);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ---------- карточка ввода текста ----------
+   Используется и главной, и пустым состоянием «Чтения», поэтому живёт здесь,
+   а не в стилях одной страницы. */
+
+.input-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 960px;
+  margin: 48px auto 0;
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+}
+
+/* Поле темнее карточки — так область ввода читается как «углубление». */
+.input-card__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-bg);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+}
+
+.input-card__label {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: var(--text-label);
+  color: var(--color-text-3);
+}
+
+.input-card__textarea {
+  min-height: 140px;
+  border: none;
+  background: transparent;
+  outline: none;
+  resize: none;
+  font-family: var(--font-cn);
+  font-size: 24px;
+  line-height: 1.75;
+  color: var(--color-text);
+}
+
+.input-card__textarea::placeholder {
+  color: var(--color-placeholder);
+}
+
+.input-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.input-card__left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.input-card__counter {
+  font-size: var(--text-caption);
+  color: var(--color-text-3);
+}
+
+.input-card__actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
 /* ---------- сообщения об ошибках ---------- */
 
 .messages {
@@ -378,6 +484,21 @@ ul {
 
   .nav__link {
     font-size: var(--text-sm);
+  }
+
+  .input-card__textarea {
+    font-size: 20px;
+  }
+
+  /* На узком экране подпись, счётчик и кнопки встают в колонку,
+     иначе они не помещаются в строку. */
+  .input-card__footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .input-card__actions .btn {
+    flex: 1;
   }
 
   .stub {

@@ -156,3 +156,13 @@ class TestLookupView:
         response = client.get(reverse("reader:lookup"), {"word": "猫", "lang": "ru"})
 
         assert set(json.loads(response.content)) == {"data", "error", "message"}
+
+
+def test_template_comments_do_not_leak_into_the_page(client: Client) -> None:
+    """A multiline {# #} is not a comment and renders as visible text.
+
+    Django only treats {# #} as a comment when it stays on one line; spread over
+    two it ends up on the page, which is exactly what happened here.
+    """
+    for url in [reverse("core:home"), reverse("reader:read")]:
+        assert "{#" not in client.get(url).content.decode()

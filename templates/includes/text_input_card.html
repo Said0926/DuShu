@@ -37,8 +37,8 @@
     </div>
 
     <div class="input-card__actions">
-      {# Shadowing появится на восьмом этапе; кнопку рисуем сразу,
-         чтобы раскладка не поехала, когда она заработает. #}
+      {% comment %} Shadowing появится на восьмом этапе; кнопку рисуем сразу,
+         чтобы раскладка не поехала, когда она заработает. {% endcomment %}
       <button class="btn btn--ghost" type="button" disabled>Shadowing</button>
       <button class="btn btn--primary" type="submit">{{ submit_label|default:"Читать →" }}</button>
     </div>
