@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff
+      - run: ruff check .
+      - run: ruff format --check .
+
+  test:
+    runs-on: ubuntu-latest
+
+    # Тесты идут на настоящем PostgreSQL, а не на SQLite: окружение должно
+    # совпадать с локальным и продовым, иначе CI пропустит специфичные для PG ошибки.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: dushu
+          POSTGRES_USER: dushu
+          POSTGRES_PASSWORD: dushu
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DJANGO_SECRET_KEY: ci-secret-key-not-used-in-production
+      DJANGO_SETTINGS_MODULE: config.settings.test
+      DJANGO_DEBUG: "False"
+      DATABASE_URL: postgres://dushu:dushu@localhost:5432/dushu
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: pytest

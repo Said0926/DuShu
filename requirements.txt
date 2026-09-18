@@ -1,0 +1,23 @@
+# --- core ---
+Django>=5.2,<6.0
+django-environ>=0.11          # чтение настроек из .env
+psycopg[binary]>=3.2          # драйвер PostgreSQL, без компиляции
+
+# --- auth (подключается на этапе 6) ---
+django-allauth>=65.0
+
+# --- rate limiting (подключается на этапе 6) ---
+django-ratelimit>=4.1
+
+# --- обработка китайского текста (этап 3) ---
+jieba>=0.42.1                 # сегментация на слова
+pypinyin>=0.53                # пиньинь и тоны
+
+# --- внешние API (этап 5) ---
+requests>=2.32
+
+# --- dev & CI ---
+pytest>=8.0
+pytest-django>=4.9
+ruff>=0.7
+pre-commit>=4.0

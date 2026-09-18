@@ -1,0 +1,30 @@
+# --- secrets ---
+.env
+
+# --- python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# --- django ---
+/staticfiles/
+/media/
+*.sqlite3
+*.log
+
+# --- tests & tools ---
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# --- dictionaries (большие дампы качаются вручную, в репозиторий не кладём) ---
+/data/
+
+# --- macOS / IDE ---
+.DS_Store
+.idea/
+.vscode/
+.gstack/

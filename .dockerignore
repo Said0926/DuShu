@@ -1,0 +1,15 @@
+.git/
+.github/
+.env
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+/staticfiles/
+/media/
+/data/
+.DS_Store
+.idea/
+.vscode/

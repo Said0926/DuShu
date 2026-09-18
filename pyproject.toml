@@ -1,0 +1,39 @@
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["migrations"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle
+    "F",    # pyflakes
+    "I",    # isort — порядок импортов
+    "UP",   # pyupgrade — современный синтаксис для целевой версии Python
+    "B",    # flake8-bugbear — типичные логические ловушки
+    "DJ",   # flake8-django — специфичные для Django правила
+    "RUF",  # правила самого ruff
+]
+
+ignore = [
+    # RUF001–003 ищут «обманчивые» юникод-символы: кириллическую «с» вместо латинской «c»
+    # и т.п. Правило рассчитано на код, где кириллица появляется случайно. У нас комментарии
+    # на русском по соглашению проекта, поэтому оно срабатывает на каждой второй строке.
+    "RUF001",
+    "RUF002",
+    "RUF003",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["apps", "config"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+python_files = ["test_*.py"]
+testpaths = ["tests"]
+# --ds передаётся как аргумент командной строки и поэтому перебивает переменную
+# окружения DJANGO_SETTINGS_MODULE из .env. Через ключ DJANGO_SETTINGS_MODULE
+# этого добиться нельзя: у ini-настройки приоритет ниже, чем у окружения,
+# и тесты молча уезжали бы на настройки разработки.
+addopts = "-ra --ds=config.settings.test"
