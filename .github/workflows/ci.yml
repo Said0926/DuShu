@@ -49,4 +49,9 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
+
+      # Модель изменили, а миграцию забыли — молчаливое расхождение, которое
+      # всплывает через месяц в чужой ветке. Проверка ничего не пишет на диск.
+      - run: python manage.py makemigrations --check --dry-run
+
       - run: pytest
