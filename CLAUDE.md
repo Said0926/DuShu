@@ -60,6 +60,53 @@ TRANSLATION_PROVIDER=apps.translation.providers.dummy.DummyProvider   # загл
 docker compose exec web python manage.py clear_translation_cache --provider DummyProvider
 ```
 
+## Авторизация и лимиты
+
+Вход по email и паролю или через Google, всё на django-allauth.
+
+**Подтверждение почты обязательно.** Дело не в чистоте базы: у зарегистрированных лимит
+обработок выше, чем у гостей, и без подтверждения «регистрация» стоила бы выдуманного адреса
+и десяти секунд, то есть повышенный лимит выдавался бы кому угодно сколько угодно раз.
+
+В разработке письма никуда не уходят — `EMAIL_BACKEND` печатает их в лог контейнера:
+
+```bash
+docker compose logs -f web                    # письмо целиком
+# только ссылка из последнего письма:
+docker compose logs web | grep -o 'http://localhost:8000/accounts/confirm-email/[^ ]*' | tail -1
+```
+
+Ссылку всегда можно получить заново: попробуй войти неподтверждённым аккаунтом — не пустят,
+но новое письмо уйдёт в лог.
+
+**Google** настраивается ключами в `.env` (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`), а не
+строкой `SocialApp` в админке: секреты не уезжают в базу. Пока ключей нет, секция `APP`
+в настройках не создаётся, провайдер не попадает в список и кнопка не рисуется вовсе.
+Redirect URI для консоли Google: `http://localhost:8000/accounts/google/login/callback/`.
+
+`SOCIALACCOUNT_EMAIL_AUTHENTICATION` включён: зарегистрировавшийся по паролю может потом
+войти через Google с тем же адресом. По умолчанию это выключено, потому что провайдер,
+врущий про подтверждённость адреса, вошёл бы в любой чужой аккаунт. **Появится второй
+провайдер — решение пересмотреть.**
+
+**Настройки чтения** для гостя лежат в `localStorage`, для авторизованного — в `UserSettings`.
+Их рендерит сервер прямо в разметку: иначе страница успевает отрисоваться с умолчаниями
+и дёргается, когда браузер прочитает сохранённые значения. Пустой `font_size` означает
+«не выбирали» и это не то же самое, что `md`: без атрибута `data-size` на узком экране
+действует уменьшенный кегль из медиазапроса.
+
+**Лимиты** — в `apps/core/limits.py`, числа в settings: гость `5/h`, пользователь `30/h`
+на обработку текста, подсказки словаря считаются отдельно и мягче. Читать счётчик нужно
+той же группой, ключом и ставкой, какими он пишется, иначе шапка покажет число, не имеющее
+отношения к действующему лимиту, и никто об этом не сообщит.
+
+Счётчики живут в `LocMemCache`, то есть в памяти процесса. Упёрся в собственный лимит
+при проверках — сбрось:
+
+```bash
+docker compose restart web
+```
+
 ## Архитектура
 
 Главное требование — расширяемость. Впереди личные словари с интервальным повторением,
@@ -85,8 +132,8 @@ docker compose exec web python manage.py clear_translation_cache --provider Dumm
 
 | App | Зона ответственности |
 |---|---|
-| `core` | главная, `base.html`, context processors |
-| `accounts` | `User(AbstractUser)`, `UserSettings`, профиль |
+| `core` | главная, `base.html`, context processors, конфигурация лимитов |
+| `accounts` | `User` (вход по email), `UserSettings`, профиль, формы allauth |
 | `chinese` | разбиение на предложения, сегментация, пиньинь, тоны |
 | `dictionary` | `DictionaryEntry`, импорт словарей, поиск |
 | `translation` | `TranslationProvider`, кэш переводов |
@@ -96,7 +143,8 @@ docker compose exec web python manage.py clear_translation_cache --provider Dumm
 | `library` | сохранённые тексты пользователя |
 
 Зависимости идут только в одну сторону: фичи (`reader`, `shadowing`, `library`) зависят от
-инфраструктуры (`chinese`, `dictionary`, `translation`, `tts`), но не друг от друга.
+инфраструктуры (`chinese`, `dictionary`, `translation`, `tts`, `accounts`, `core`),
+но не друг от друга.
 
 ## Дизайн
 
@@ -169,7 +217,7 @@ docker compose exec web python manage.py clear_translation_cache --provider Dumm
 - [x] **3. `chinese`** — разбиение на предложения, сегментация, пиньинь, тоны + тесты
 - [x] **4. `dictionary`** — модель, импорт CC-CEDICT и БКРС, поиск + тесты
 - [x] **5. `translation` + «Чтение»** — провайдеры, кэш переводов, страница, подсказки, настройки
-- [ ] **6. Авторизация** — allauth, `UserSettings`, rate limiting
+- [x] **6. Авторизация** — allauth, вход по email и через Google, `UserSettings`, rate limiting
 - [ ] **7. `library`** — сохранённые тексты
 - [ ] **8. `tts` + «Shadowing»** — сначала обсуждаем выбор TTS-провайдера, потом код
 - [ ] **9. README** — установка, ключи, словари, архитектура, рецепты расширения
