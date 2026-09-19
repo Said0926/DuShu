@@ -86,6 +86,8 @@ TEMPLATES = [
                 # Настройки чтения нужны и главной, и «Чтению», и (позже)
                 # Shadowing, поэтому отдаём их всем шаблонам сразу.
                 "apps.accounts.context_processors.reading_settings",
+                # Остаток лимита показывает шапка, то есть нужен на каждой странице.
+                "apps.core.context_processors.quota",
             ],
         },
     },

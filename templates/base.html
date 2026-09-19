@@ -33,8 +33,11 @@
     </nav>
 
     <div class="site-header__side">
-      {# Реальные цифры лимита появятся вместе с rate limiting. #}
-      <span class="quota">Лимит не подключён</span>
+      {% if quota %}
+        <span class="quota {% if not quota.remaining %}quota--empty{% endif %}">
+          Осталось {{ quota.remaining }} из {{ quota.limit }}
+        </span>
+      {% endif %}
       {% if user.is_authenticated %}
         <a class="avatar avatar--initial"
            href="{% url 'accounts:profile' %}"

@@ -143,6 +143,11 @@ ul {
   color: var(--color-text-3);
 }
 
+/* Лимит закончился — единственное состояние шапки, которое должно цеплять взгляд. */
+.quota--empty {
+  color: var(--color-accent);
+}
+
 .avatar {
   display: grid;
   place-items: center;
