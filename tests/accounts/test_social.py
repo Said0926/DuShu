@@ -12,8 +12,6 @@ from django.urls import reverse
 
 from apps.accounts.models import User
 
-PASSWORD = "very-secret-passphrase"
-
 GOOGLE_APP = {
     "google": {
         "SCOPE": ["profile", "email"],
@@ -26,11 +24,6 @@ GOOGLE_APP = {
 def google_configured(settings: pytest.FixtureRequest) -> None:
     """Pretend GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are filled in."""
     settings.SOCIALACCOUNT_PROVIDERS = GOOGLE_APP
-
-
-@pytest.fixture
-def user(db: None) -> User:
-    return User.objects.create_user(email="li@example.com", password=PASSWORD)
 
 
 @pytest.mark.django_db

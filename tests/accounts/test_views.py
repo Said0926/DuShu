@@ -6,13 +6,6 @@ from django.urls import reverse
 
 from apps.accounts.models import User
 
-PASSWORD = "very-secret-passphrase"
-
-
-@pytest.fixture
-def user(db: None) -> User:
-    return User.objects.create_user(email="li@example.com", password=PASSWORD)
-
 
 @pytest.mark.django_db
 def test_profile_requires_login(client: Client) -> None:
