@@ -120,6 +120,10 @@ AUTHENTICATION_BACKENDS = [
 # потоке домен берётся из request. Без sites на одну сущность меньше, и ссылки
 # в письмах ведут на реальный хост, а не на example.com из фикстуры.
 
+# Куда LoginRequiredMixin отправляет анонимного посетителя. Значение по умолчанию
+# совпадает с этим адресом, но написать его явно дешевле, чем однажды искать,
+# почему редирект уехал не туда.
+LOGIN_URL = "account_login"
 LOGIN_REDIRECT_URL = "/"
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"
 
@@ -136,6 +140,18 @@ ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 # каждую новую учётку пришлось бы подтверждать ссылкой из логов контейнера —
 # для разработки это лишнее трение. Значение меняется одной строкой.
 ACCOUNT_EMAIL_VERIFICATION = "optional"
+
+# Свои формы нужны ровно для одного: убрать placeholder'ы, которые allauth
+# заполняет теми же словами, что и подписи полей. Его шаблоны рисуют поля
+# без подписей, наши — с подписями, и текст двоился бы в каждом поле.
+ACCOUNT_FORMS = {
+    "login": "apps.accounts.forms.LoginForm",
+    "signup": "apps.accounts.forms.SignupForm",
+    "reset_password": "apps.accounts.forms.ResetPasswordForm",
+    "reset_password_from_key": "apps.accounts.forms.ResetPasswordKeyForm",
+    "change_password": "apps.accounts.forms.ChangePasswordForm",
+    "set_password": "apps.accounts.forms.SetPasswordForm",
+}
 
 # --- i18n ---
 

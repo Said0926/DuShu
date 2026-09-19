@@ -1,0 +1,23 @@
+{% extends "account/base_entrance.html" %}
+
+{% block head_title %}Подтверждение email{% endblock %}
+{% block auth_title %}Подтверждение email{% endblock %}
+
+{% block auth_body %}
+  {% if confirmation and can_confirm %}
+    <p class="auth__lead">
+      Подтвердить адрес <strong>{{ confirmation.email_address.email }}</strong>?
+    </p>
+    <form class="auth__form" method="post" action="{% url 'account_confirm_email' confirmation.key %}">
+      {% csrf_token %}
+      {{ redirect_field }}
+      <button class="btn btn--primary auth__submit" type="submit">Подтвердить</button>
+    </form>
+  {% elif confirmation %}
+    <p class="auth__lead">
+      Этот адрес уже подтверждён другим аккаунтом, поэтому привязать его сюда нельзя.
+    </p>
+  {% else %}
+    <p class="auth__lead">Ссылка устарела или недействительна.</p>
+  {% endif %}
+{% endblock %}

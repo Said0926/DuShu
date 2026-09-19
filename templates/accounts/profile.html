@@ -1,0 +1,22 @@
+{% extends "accounts/base_card.html" %}
+
+{% block title %}Профиль — Dúshū{% endblock %}
+{% block auth_title %}Профиль{% endblock %}
+
+{% block auth_body %}
+  <dl class="profile-list">
+    <div class="profile-list__row">
+      <dt class="profile-list__key">Email</dt>
+      <dd class="profile-list__value">{{ user.email }}</dd>
+    </div>
+    <div class="profile-list__row">
+      <dt class="profile-list__key">Аккаунт создан</dt>
+      <dd class="profile-list__value">{{ user.date_joined|date:"j E Y" }}</dd>
+    </div>
+  </dl>
+
+  <div class="auth__actions">
+    <a class="btn btn--ghost" href="{% url 'account_change_password' %}">Сменить пароль</a>
+    <a class="btn btn--ghost" href="{% url 'account_logout' %}">Выйти</a>
+  </div>
+{% endblock %}

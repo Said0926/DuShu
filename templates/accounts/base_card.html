@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% comment %}
+Центрированная карточка — общая форма всех страниц аккаунта: входа, регистрации,
+сброса пароля и профиля.
+
+Заголовок, подзаголовок и сама карточка описаны здесь один раз; страница
+заполняет только свою середину через auth_title / auth_lead / auth_body.
+{% endcomment %}
+{% load static %}
+
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/auth.css' %}">{% endblock %}
+
+{% block content %}
+  <section class="auth">
+    <div class="auth__card">
+      <h1 class="auth__title">{% block auth_title %}Аккаунт{% endblock %}</h1>
+      {% block auth_lead %}{% endblock %}
+      {% block auth_body %}{% endblock %}
+    </div>
+  </section>
+{% endblock %}

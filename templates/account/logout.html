@@ -1,0 +1,21 @@
+{% extends "account/base_manage.html" %}
+
+{% block head_title %}Выход{% endblock %}
+{% block auth_title %}Выйти{% endblock %}
+
+{% block auth_lead %}
+  <p class="auth__lead">Точно выйти из аккаунта?</p>
+{% endblock %}
+
+{% block auth_body %}
+  {% comment %} Выход — POST, а не ссылка: иначе его можно вызвать чужой картинкой
+     на другом сайте, и CSRF-токен перестанет что-либо значить. {% endcomment %}
+  <form class="auth__form" method="post" action="{% url 'account_logout' %}">
+    {% csrf_token %}
+    {{ redirect_field }}
+    <div class="auth__actions">
+      <a class="btn btn--ghost" href="{% url 'core:home' %}">Остаться</a>
+      <button class="btn btn--primary" type="submit">Выйти</button>
+    </div>
+  </form>
+{% endblock %}

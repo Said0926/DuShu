@@ -10,6 +10,7 @@ urlpatterns = [
     # allauth приносит сразу весь набор: вход, регистрация, выход,
     # сброс пароля, подтверждение email.
     path("accounts/", include("allauth.urls")),
+    path("", include("apps.accounts.urls")),
     path("", include("apps.core.urls")),
     path("reader/", include("apps.reader.urls")),
 ]

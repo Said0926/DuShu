@@ -1,0 +1,217 @@
+/*
+ * auth.css — вход, регистрация, восстановление пароля, профиль.
+ *
+ * DESIGN.md эти страницы не описывает, поэтому они собраны из уже существующих
+ * компонентов и ничего нового не вводят: карточка повторяет карточку ввода
+ * с главной (§8), поле — её внутренний блок на --color-bg, кнопки те же
+ * .btn--primary и .btn--ghost.
+ */
+
+.auth {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 72px var(--page-gutter) 96px;
+}
+
+.auth__card {
+  padding: var(--space-8);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+}
+
+.auth__title {
+  margin-bottom: var(--space-3);
+  font-family: var(--font-display);
+  font-size: var(--text-h1);
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.auth__lead {
+  margin-bottom: var(--space-6);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--color-text-3);
+}
+
+.auth__link {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.auth__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.auth__submit {
+  width: 100%;
+  margin-top: var(--space-2);
+}
+
+.auth__actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+/* Кнопки в паре растягиваются на всю ширину карточки. Основа auto, а не 0:
+   при нулевой основе flex сжимает кнопку уже её собственной надписи. */
+.auth__actions > .btn {
+  flex: 1 1 auto;
+}
+
+.auth__hint {
+  margin-top: var(--space-5);
+  font-size: var(--text-caption);
+  text-align: center;
+  color: var(--color-text-3);
+}
+
+/* Ошибки, не привязанные к полю (например, неверная пара email + пароль).
+   Оформление то же, что у .messages__item, чтобы сообщения на сайте выглядели
+   одинаково независимо от того, кто их поставил. */
+.auth__errors {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-line-strong);
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  font-size: var(--text-sm);
+  color: var(--color-text-2);
+}
+
+/* ---------- поля ---------- */
+
+.field-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+}
+
+/* Рамка у самого input убрана, поэтому фокус подсвечиваем на всём поле —
+   иначе при табуляции было бы не видно, куда попал курсор. */
+.field:focus-within {
+  border-color: var(--color-line-pop);
+}
+
+.field__label {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: var(--text-label);
+  color: var(--color-text-3);
+}
+
+.field input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: var(--font-ui);
+  font-size: var(--text-body);
+  color: var(--color-text);
+}
+
+.field input::placeholder {
+  color: var(--color-placeholder);
+}
+
+/* Чекбокс («Запомнить меня») — строка, а не колонка, и высотой в минимальную
+   интерактивную цель из §9. */
+.field--check {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--control-height);
+  padding: 0 var(--space-1);
+  background: transparent;
+  border-color: transparent;
+}
+
+.field--check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-accent);
+}
+
+.field__check-label {
+  font-size: var(--text-sm);
+  color: var(--color-text-2);
+}
+
+.field__help {
+  font-size: var(--text-caption);
+  line-height: 1.5;
+  color: var(--color-text-4);
+}
+
+/* Внутри подсказки бывает ссылка — «Забыли пароль?» под полем пароля.
+   Без этого правила она неотличима от обычного текста: у <a> в base.css
+   цвет унаследован и подчёркивание снято. */
+.field__help a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.field__error {
+  font-size: var(--text-caption);
+  color: var(--color-accent);
+}
+
+/* ---------- профиль ---------- */
+
+.profile-list {
+  margin-bottom: var(--space-6);
+}
+
+.profile-list__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-line);
+  font-size: var(--text-sm);
+}
+
+.profile-list__key {
+  color: var(--color-text-3);
+}
+
+.profile-list__value {
+  text-align: right;
+  color: var(--color-text);
+}
+
+/* ---------- адаптив ---------- */
+
+@media (max-width: 900px) {
+  .auth {
+    padding: 48px var(--page-gutter) 64px;
+  }
+}
+
+@media (max-width: 600px) {
+  .auth__card {
+    padding: var(--space-5);
+  }
+
+  /* Две кнопки в строке на узком экране становятся слишком тесными. */
+  .auth__actions {
+    flex-direction: column;
+  }
+}

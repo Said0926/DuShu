@@ -33,9 +33,15 @@
     </nav>
 
     <div class="site-header__side">
-      {# Реальные цифры лимита появятся на этапе 6 вместе с rate limiting. #}
+      {# Реальные цифры лимита появятся вместе с rate limiting. #}
       <span class="quota">Лимит не подключён</span>
-      <a class="avatar" href="{% url 'core:coming-soon' %}" aria-label="Профиль">人</a>
+      {% if user.is_authenticated %}
+        <a class="avatar avatar--initial"
+           href="{% url 'accounts:profile' %}"
+           aria-label="Профиль">{{ user.email|first|upper }}</a>
+      {% else %}
+        <a class="btn btn--ghost" href="{% url 'account_login' %}">Войти</a>
+      {% endif %}
     </div>
   </header>
 

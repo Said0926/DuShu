@@ -1,0 +1,29 @@
+{% comment %}
+Одно поле формы в вёрстке проекта.
+
+Параметр:
+    field — bound field, приходит из цикла {% for field in form %}.
+
+Поле рендерит сам Django, поэтому класс на <input> не повесить, не притащив
+лишнюю зависимость вроде django-widget-tweaks. Вместо этого input стилизуется
+по тегу внутри .field — правило локальное, и лишнего пакета не нужно.
+{% endcomment %}
+<div class="field-row">
+  {% if field.field.widget.input_type == "checkbox" %}
+    <label class="field field--check">
+      {{ field }}
+      <span class="field__check-label">{{ field.label }}</span>
+    </label>
+  {% else %}
+    <label class="field">
+      <span class="field__label">{{ field.label }}</span>
+      {{ field }}
+    </label>
+  {% endif %}
+
+  {% comment %} div, а не p: подсказка про пароль приходит от Django списком <ul>,
+     а абзац не может его содержать — браузер закрыл бы <p> раньше времени
+     и класс перестал бы действовать. {% endcomment %}
+  {% if field.help_text %}<div class="field__help">{{ field.help_text }}</div>{% endif %}
+  {% for error in field.errors %}<p class="field__error">{{ error }}</p>{% endfor %}
+</div>
