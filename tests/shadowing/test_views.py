@@ -7,9 +7,13 @@ from django.test import Client
 from django.urls import reverse
 
 from apps.accounts.models import User
+from apps.accounts.services import update_user_setting
+from apps.translation.exceptions import TranslationError
 from apps.tts.exceptions import TTSError
 
 pytestmark = pytest.mark.django_db
+
+LISTEN = reverse("shadowing:listen")
 
 
 class TestShadowingView:
@@ -79,6 +83,51 @@ class TestShadowingView:
 
         assert response.status_code == 302
 
+    def test_the_translation_is_shown_under_the_sentence(self, client: Client) -> None:
+        response = client.post(LISTEN, {"text": "我去。", "lang": "ru"})
+
+        assert response.context["sentences"][0].translation
+        assert 'class="reader__translation"' in response.content.decode()
+
+    def test_the_translation_switch_is_offered(self, client: Client) -> None:
+        html = client.post(LISTEN, {"text": "我去。", "lang": "ru"}).content.decode()
+
+        assert 'data-setting="translation"' in html
+
+    def test_a_user_who_turned_translation_off_gets_it_hidden(
+        self, client: Client, user: User
+    ) -> None:
+        """One setting for both pages: switching it off in the reader switches it off here."""
+        update_user_setting(user, "translation", False)
+        client.force_login(user)
+
+        html = client.post(LISTEN, {"text": "我去。", "lang": "ru"}).content.decode()
+
+        # Прячет класс на контейнере, а не отсутствие разметки: переключатель
+        # должен возвращать перевод обратно без перезагрузки страницы.
+        assert "translation-off" in html
+        assert 'class="reader__translation"' in html
+
+    def test_an_unknown_language_falls_back_to_the_default(self, client: Client) -> None:
+        """A broken hidden field must not cost the reader the page."""
+        response = client.post(LISTEN, {"text": "我去。", "lang": "kz"})
+
+        assert response.status_code == 200
+        assert response.context["language"] == "ru"
+
+    def test_a_failing_translation_still_leaves_the_audio(self, client: Client) -> None:
+        """Two services: one dying must not cost the other."""
+        with patch(
+            "apps.shadowing.views.translate_sentences",
+            side_effect=TranslationError("down"),
+        ):
+            response = client.post(LISTEN, {"text": "我去。", "lang": "ru"})
+
+        assert response.status_code == 200
+        assert response.context["sentences"]
+        assert response.context["sentences"][0].translation == ""
+        assert "Перевод сейчас недоступен" in response.content.decode()
+
     def test_a_failing_provider_still_renders_the_page(self, client: Client) -> None:
         """A dead speech service must cost the audio, not the page."""
         with patch("apps.shadowing.services.get_sentence_audio", side_effect=TTSError("down")):
@@ -124,11 +173,47 @@ class TestAudioLimit:
         for _ in range(10):
             assert self._submit(client, 1) == 200
 
-    def test_the_reader_limit_is_counted_separately(self, client: Client) -> None:
-        """Two groups, two counters: listening must not eat the reading limit."""
-        for number in range(6):
-            self._submit(client, number)
+    def test_a_fresh_text_spends_the_reading_limit_too(self, client: Client) -> None:
+        """Translation is the paid work, and it is paid for wherever it is asked for.
 
-        assert (
-            client.post(reverse("reader:read"), {"text": "你好。", "lang": "ru"}).status_code == 200
-        )
+        Before this page translated, listening left the reading counter alone.
+        It cannot any more: otherwise shadowing would be a way around every
+        limit that guards the translation budget.
+        """
+        for number in range(5):
+            assert self._submit(client, number) == 200
+
+        refused = client.post(reverse("reader:read"), {"text": "全新的句子。", "lang": "ru"})
+
+        assert refused.status_code == 429
+
+    def test_a_text_already_translated_costs_only_the_speech_limit(self, client: Client) -> None:
+        """The reader already paid for this translation; listening must not pay twice."""
+        shared = "这是共享的句子。"
+        first = client.post(reverse("reader:read"), {"text": shared, "lang": "ru"})
+        assert first.status_code == 200
+
+        # Дотрачиваем счётчик обработки текстов ровно до предела.
+        for number in range(4):
+            client.post(reverse("reader:read"), {"text": f"这是第{number}句话。", "lang": "ru"})
+
+        response = client.post(LISTEN, {"text": shared, "lang": "ru"})
+
+        assert response.status_code == 200
+        assert response.context["sentences"][0].translation
+
+        # И предел действительно был достигнут: следующий новый текст не пройдёт.
+        another = client.post(reverse("reader:read"), {"text": "再来一句。", "lang": "ru"})
+        assert another.status_code == 429
+
+    def test_an_exhausted_translation_limit_does_not_close_the_page(self, client: Client) -> None:
+        """Listening and repeating works without a translation — that is the point here."""
+        for number in range(5):
+            client.post(reverse("reader:read"), {"text": f"这是第{number}句话。", "lang": "ru"})
+
+        response = client.post(LISTEN, {"text": "还没有翻译的句子。"})
+
+        assert response.status_code == 200
+        assert response.context["sentences"]
+        assert response.context["sentences"][0].translation == ""
+        assert any("Лимит" in warning for warning in response.context["warnings"])

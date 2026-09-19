@@ -144,13 +144,28 @@
   display: none;
 }
 
+/* Предложение — две строки: иероглифы и перевод под ними. */
 .stage__sentence.is-current {
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.stage__line {
   justify-content: center;
   /* 50px — это размер сцены из DESIGN.md §7, а не один из --reader-*:
      здесь читают одну фразу, а не страницу текста. */
   font-size: 50px;
   row-gap: var(--space-6);
+}
+
+/* Перевод отбит по центру под фразой. Отступление от DESIGN.md §7, где переводов
+   на этой странице нет: владелец попросил их добавить, потому что без перевода
+   непонятно, что именно повторяешь. Выключается тем же переключателем, что
+   и в «Чтении». */
+.stage__sentence .reader__translation {
+  text-align: center;
 }
 
 /* Караоке-подсветка. Подчёркивание обязательно: цвет не должен быть
@@ -265,9 +280,12 @@
 
 /* ---------- нижняя строка настроек ---------- */
 
+/* Выравнивание по верхнему краю: справа три переключателя, слева два контрола,
+   и по нижнему краю левая колонка провалилась бы вниз, оставив дыру под
+   разделителем. */
 .stage__settings {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: var(--space-8);
   flex-wrap: wrap;
 }
@@ -345,7 +363,7 @@
     max-width: 240px;
   }
 
-  .stage__sentence.is-current {
+  .stage__line {
     font-size: var(--reader-md);
   }
 
@@ -387,7 +405,7 @@
 }
 
 @media (max-width: 600px) {
-  .stage__sentence.is-current {
+  .stage__line {
     font-size: var(--reader-sm);
   }
 

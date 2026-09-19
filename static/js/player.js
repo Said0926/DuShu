@@ -224,9 +224,14 @@ if (root && audio && store) {
 
   // --- восстановление сохранённых настроек ---
 
-  // Пиньинь и цвета тонов — те же настройки, что в «Чтении», поэтому читаются
-  // из того же стора и теми же именами.
-  const SWITCH_CLASSES = { pinyin: "pinyin-off", tones: "tones-off" };
+  // Пиньинь, цвета тонов и перевод — те же настройки, что в «Чтении», поэтому
+  // читаются из того же стора и теми же именами: выключил перевод там —
+  // выключен и здесь.
+  const SWITCH_CLASSES = {
+    pinyin: "pinyin-off",
+    tones: "tones-off",
+    translation: "translation-off",
+  };
 
   for (const [name, className] of Object.entries(SWITCH_CLASSES)) {
     const enabled = store.readSetting(name, true);
