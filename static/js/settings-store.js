@@ -26,19 +26,6 @@ const serverSettings = serverElement ? JSON.parse(serverElement.textContent) : n
 const isAuthenticated = serverSettings !== null && settingsUrl !== "";
 
 /**
- * Достаёт CSRF-токен из cookie.
- *
- * Обычные формы получают токен тегом {% csrf_token %}, а fetch приходится
- * читать cookie самому — это задокументированный способ из документации Django.
- *
- * @returns {string} токен, либо пустая строка, если cookie ещё нет
- */
-function getCsrfToken() {
-  const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]*)/);
-  return match ? decodeURIComponent(match[1]) : "";
-}
-
-/**
  * Отправляет одну настройку на сервер.
  *
  * Ответа никто не ждёт: значение уже применено к странице и к копии в памяти,
@@ -55,7 +42,7 @@ async function saveToServer(name, value) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-CSRFToken": getCsrfToken(),
+        "X-CSRFToken": window.DushuCsrf.getCsrfToken(),
       },
       body: JSON.stringify({ name, value }),
     });

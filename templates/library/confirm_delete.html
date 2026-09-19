@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Удалить текст — Dúshū{% endblock %}
+
+{% block content %}
+<div class="stub">
+  <p class="stub__eyebrow">Удаление</p>
+  <h1 class="stub__title">{{ text.title }}</h1>
+  <p class="stub__text">
+    Текст пропадёт из библиотеки. Переводы к нему останутся в кэше,
+    поэтому если вставите его снова, платить за перевод не придётся.
+  </p>
+
+  <form method="post" action="{% url 'library:delete' text.pk %}">
+    {% csrf_token %}
+    <div class="stub__actions">
+      <a class="btn btn--ghost" href="{% url 'library:list' %}">Отмена</a>
+      <button class="btn btn--primary" type="submit">Удалить</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

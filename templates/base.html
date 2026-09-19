@@ -29,7 +29,7 @@
       <a class="nav__link {% if active_nav == 'shadowing' %}is-active{% endif %}"
          href="{% url 'core:coming-soon' %}">Shadowing</a>
       <a class="nav__link {% if active_nav == 'library' %}is-active{% endif %}"
-         href="{% url 'core:coming-soon' %}">Библиотека</a>
+         href="{% url 'library:list' %}">Библиотека</a>
     </nav>
 
     <div class="site-header__side">
@@ -79,6 +79,8 @@
      с localStorage. {% endcomment %}
   {% if settings_on_server %}{{ reading_settings|json_script:"user-settings" }}{% endif %}
 
+  {# csrf.js первым: из него берут токен и стор настроек, и библиотека. #}
+  <script src="{% static 'js/csrf.js' %}" defer></script>
   <script src="{% static 'js/settings-store.js' %}" defer></script>
   <script src="{% static 'js/controls.js' %}" defer></script>
   {% block extra_js %}{% endblock %}

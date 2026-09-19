@@ -7,7 +7,11 @@ from django.test import override_settings
 
 from apps.translation.exceptions import TranslationError
 from apps.translation.models import SentenceTranslation, sentence_hash
-from apps.translation.services import get_provider, translate_sentences
+from apps.translation.services import (
+    get_provider,
+    has_cached_translations,
+    translate_sentences,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -184,3 +188,37 @@ def test_tests_never_use_the_real_provider() -> None:
     from django.conf import settings as django_settings
 
     assert "dummy" in django_settings.TRANSLATION_PROVIDER.lower()
+
+
+@pytest.mark.django_db
+def test_nothing_cached_means_it_is_not_free() -> None:
+    assert has_cached_translations(["你好。"], "ru") is False
+
+
+@pytest.mark.django_db
+def test_a_fully_translated_text_is_free_to_reopen() -> None:
+    """This is what lets the reader skip the hourly limit on a re-read."""
+    translate_sentences(["你好。", "再见。"], "ru")
+
+    assert has_cached_translations(["你好。", "再见。"], "ru") is True
+
+
+@pytest.mark.django_db
+def test_one_missing_sentence_makes_the_whole_text_paid() -> None:
+    """Partial cache still means a request to the provider, so it must count."""
+    translate_sentences(["你好。"], "ru")
+
+    assert has_cached_translations(["你好。", "再见。"], "ru") is False
+
+
+@pytest.mark.django_db
+def test_another_language_is_not_covered_by_the_cache() -> None:
+    """Reopening a saved text in a new language is genuinely new paid work."""
+    translate_sentences(["你好。"], "ru")
+
+    assert has_cached_translations(["你好。"], "en") is False
+
+
+@pytest.mark.django_db
+def test_an_empty_text_is_free() -> None:
+    assert has_cached_translations([], "ru") is True

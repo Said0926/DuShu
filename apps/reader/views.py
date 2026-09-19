@@ -22,16 +22,14 @@ from apps.chinese.types import ProcessedText
 from apps.core.limits import (
     LOOKUP_GROUP,
     RATE_KEY,
-    TEXT_GROUP,
+    consume_text_limit,
     lookup_rate,
-    text_limit_state,
-    text_rate,
     user_text_limit,
 )
 from apps.dictionary.exceptions import UnknownLanguageError
 from apps.dictionary.services import lookup_with_fallback
 from apps.translation.exceptions import TranslationError
-from apps.translation.services import translate_sentences
+from apps.translation.services import has_cached_translations, translate_sentences
 
 from .forms import ReaderForm
 
@@ -67,14 +65,6 @@ def _translate_or_warn(processed: ProcessedText, language: str) -> tuple[list[st
         return [], "Перевод сейчас недоступен. Текст, пиньинь и подсказки работают."
 
 
-# Лимит навешен на сам метод post, поэтому GET на страницу его не расходует.
-# method при этом не ограничиваем намеренно: этот параметр попадает в ключ
-# счётчика, и с method="POST" шапка не смогла бы прочитать тот же счётчик
-# с обычной GET-страницы — показывала бы пустоту вместо остатка.
-@method_decorator(
-    ratelimit(group=TEXT_GROUP, key=RATE_KEY, rate=text_rate, block=False),
-    name="post",
-)
 class ReaderView(View):
     """Renders a submitted text for reading."""
 
@@ -94,16 +84,6 @@ class ReaderView(View):
         return render(request, "reader/reader.html", context)
 
     def post(self, request: HttpRequest) -> HttpResponse:
-        # block=False у декоратора: он только ставит флаг, а решение принимаем
-        # здесь. При block=True Django вернул бы голую 403 — ни объяснения,
-        # ни предложения зарегистрироваться, ни правильного статуса.
-        if getattr(request, "limited", False):
-            context = {
-                "limit": text_limit_state(request),
-                "user_limit": user_text_limit(),
-            }
-            return render(request, "core/rate_limited.html", context, status=429)
-
         form = ReaderForm(request.POST)
 
         if not form.is_valid():
@@ -124,6 +104,18 @@ class ReaderView(View):
             logger.warning("Text passed form validation but exceeded the processing limit")
             return redirect("core:home")
 
+        # Лимит считаем здесь, а не декоратором, и только когда работа платная:
+        # текст, все предложения которого уже в кэше, перечитывается бесплатно,
+        # иначе библиотека была бы бесполезной — тридцать открытий в час, и всё.
+        sentences = [sentence.text for sentence in processed.sentences]
+
+        if not has_cached_translations(sentences, language):
+            limit = consume_text_limit(request)
+
+            if limit is not None and limit.exceeded:
+                context = {"limit": limit, "user_limit": user_text_limit()}
+                return render(request, "core/rate_limited.html", context, status=429)
+
         translations, warning = _translate_or_warn(processed, language)
 
         # Сшиваем предложения с переводами здесь, а не в шаблоне: шаблон должен
@@ -140,6 +132,11 @@ class ReaderView(View):
             "translation_languages": settings.TRANSLATION_LANGUAGES,
             "warning": warning,
             "active_nav": "reader",
+            # Заголовок и признак «уже сохранён» приходят скрытыми полями со
+            # страницы библиотеки. Так «Чтение» открывает сохранённый текст,
+            # ничего не зная про app library: фичи не зависят друг от друга.
+            "text_title": form.cleaned_data["title"],
+            "already_saved": form.cleaned_data["saved"],
         }
         return render(request, "reader/reader.html", context)
 
