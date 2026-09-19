@@ -7,6 +7,9 @@ from django.urls import include, path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    # allauth приносит сразу весь набор: вход, регистрация, выход,
+    # сброс пароля, подтверждение email.
+    path("accounts/", include("allauth.urls")),
     path("", include("apps.core.urls")),
     path("reader/", include("apps.reader.urls")),
 ]

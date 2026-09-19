@@ -36,8 +36,12 @@ DJANGO_APPS = [
     "django.contrib.staticfiles",
 ]
 
-# Сторонние пакеты (allauth, ratelimit) подключаются на этапе 6.
-THIRD_PARTY_APPS: list[str] = []
+THIRD_PARTY_APPS = [
+    # allauth — вход и регистрация; allauth.account — вход по email и паролю.
+    # Соцвход (allauth.socialaccount) добавляется отдельно, вместе с Google.
+    "allauth",
+    "allauth.account",
+]
 
 LOCAL_APPS = [
     "apps.core",
@@ -58,6 +62,10 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Требование allauth: должен стоять после AuthenticationMiddleware.
+    # Он проверяет, что сессия не «переехала» на другого пользователя,
+    # и обслуживает многошаговые потоки вроде подтверждения email.
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -97,6 +105,37 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
+
+AUTHENTICATION_BACKENDS = [
+    # Первый нужен админке, второй — входу по email и (позже) через Google.
+    # Django пробует их по очереди, пока один не вернёт пользователя.
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+
+# --- allauth ---
+
+# django.contrib.sites намеренно не подключён. Он нужен allauth только чтобы
+# построить абсолютный URL в письме, когда запроса под рукой нет; в обычном
+# потоке домен берётся из request. Без sites на одну сущность меньше, и ссылки
+# в письмах ведут на реальный хост, а не на example.com из фикстуры.
+
+LOGIN_REDIRECT_URL = "/"
+ACCOUNT_LOGOUT_REDIRECT_URL = "/"
+
+# Вход и регистрация — по email. Имена настроек новые: ACCOUNT_AUTHENTICATION_METHOD
+# и ACCOUNT_EMAIL_REQUIRED объявлены устаревшими в allauth 65.4 и 65.5.
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+
+# У нашей модели username нет вообще, и allauth нужно сказать об этом прямо:
+# иначе он попытается его заполнить и упадёт.
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+
+# optional: письмо с подтверждением уходит, но войти можно сразу. При mandatory
+# каждую новую учётку пришлось бы подтверждать ссылкой из логов контейнера —
+# для разработки это лишнее трение. Значение меняется одной строкой.
+ACCOUNT_EMAIL_VERIFICATION = "optional"
 
 # --- i18n ---
 
