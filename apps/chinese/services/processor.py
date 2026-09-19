@@ -5,6 +5,7 @@ from django.conf import settings
 from apps.chinese.exceptions import TextTooLongError
 from apps.chinese.types import ProcessedText, Sentence
 
+from .normalize import collapse_chinese_spaces
 from .pinyin import build_word
 from .segmenter import segment
 from .splitter import split_into_sentences
@@ -25,7 +26,10 @@ def process_text(raw_text: str) -> ProcessedText:
     Raises:
         TextTooLongError: If the text exceeds ``settings.MAX_TEXT_LENGTH``.
     """
-    text = raw_text.strip()
+    # Нормализуем до всего остального, чтобы дальше по конвейеру — сегментация,
+    # хэши кэша, озвучка — все видели один и тот же текст. Иначе один и тот же
+    # отрывок с пробелами и без попадал бы в разные записи кэша.
+    text = collapse_chinese_spaces(raw_text.strip())
 
     # Проверяем до обработки: смысла сегментировать текст, который мы всё равно
     # отклоним, нет — а на длинном тексте это заметная работа.
