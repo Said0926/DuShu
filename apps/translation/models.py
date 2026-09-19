@@ -1,18 +1,4 @@
-import hashlib
-
 from django.db import models
-
-
-def sentence_hash(sentence: str) -> str:
-    """Return the cache key for a sentence.
-
-    Hashing rather than indexing the text itself: sentences can be long, and a
-    64-character key indexes far better than an unbounded string.
-
-    The sentence is stripped first so that the same sentence pasted with
-    different surrounding whitespace hits the same cache entry.
-    """
-    return hashlib.sha256(sentence.strip().encode("utf-8")).hexdigest()
 
 
 class SentenceTranslation(models.Model):
