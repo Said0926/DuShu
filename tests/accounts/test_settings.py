@@ -48,6 +48,10 @@ def test_guest_gets_every_setting_with_a_default() -> None:
     # Пустая строка, а не "md": размер не выбирали, и на узком экране должен
     # действовать уменьшенный кегль из медиазапроса.
     assert data["fontSize"] == ""
+    # Настройки Shadowing приходят тем же словарём: шаблон не должен знать,
+    # какая фича какую настройку добавила.
+    assert data["pauseMode"] == "auto"
+    assert data["repeats"] == 1
 
 
 @pytest.mark.django_db
@@ -79,6 +83,8 @@ def test_off_classes_lists_only_what_is_switched_off() -> None:
         ("hints", False, "show_hints"),
         ("fontSize", "lg", "font_size"),
         ("language", "en", "language"),
+        ("pauseMode", "fixed", "pause_mode"),
+        ("repeats", 3, "repeats"),
     ],
 )
 def test_update_saves_the_setting(user: User, name: str, value: object, field: str) -> None:
@@ -100,6 +106,13 @@ def test_update_rejects_an_unknown_setting(user: User) -> None:
         ("pinyin", "yes"),  # строка вместо булева значения
         ("fontSize", "huge"),
         ("language", "kz"),  # нет в TRANSLATION_LANGUAGES
+        ("pauseMode", "slow"),  # нет в PAUSE_MODES
+        ("repeats", 0),  # меньше минимума
+        ("repeats", 99),  # больше максимума
+        ("repeats", "три"),  # не число
+        # True — это int в Python, поэтому булево отсекается отдельно:
+        # иначе оно записалось бы как один повтор.
+        ("repeats", True),
     ],
 )
 def test_update_rejects_a_value_the_reader_cannot_render(

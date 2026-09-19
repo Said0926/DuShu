@@ -5,7 +5,15 @@ from typing import Any
 from django.conf import settings as django_settings
 
 from .exceptions import InvalidSettingValueError, UnknownSettingError
-from .models import User, UserSettings
+from .models import (
+    DEFAULT_PAUSE_MODE,
+    DEFAULT_REPEATS,
+    MAX_REPEATS,
+    MIN_REPEATS,
+    PAUSE_MODES,
+    User,
+    UserSettings,
+)
 
 # Имя настройки в браузере -> поле модели. Названия разные намеренно: в CSS и JS
 # уже прижились короткие (классы pinyin-off, tones-off), а поле модели честнее
@@ -19,6 +27,13 @@ BOOLEAN_SETTINGS = {
 
 # Совпадают с переменными --reader-sm / --reader-md / --reader-lg в tokens.css.
 FONT_SIZES = ("sm", "md", "lg")
+
+# Настройки Shadowing. Их значения — не булевы, поэтому в BOOLEAN_SETTINGS им
+# места нет, но храниться и восстанавливаться они должны тем же механизмом.
+SHADOWING_SETTINGS = {
+    "pauseMode": "pause_mode",
+    "repeats": "repeats",
+}
 
 
 def get_user_settings(user: User) -> UserSettings:
@@ -53,6 +68,8 @@ def as_client_dict(user_settings: UserSettings | None) -> dict[str, Any]:
         defaults: dict[str, Any] = dict.fromkeys(BOOLEAN_SETTINGS, True)
         defaults["fontSize"] = ""
         defaults["language"] = django_settings.DEFAULT_TRANSLATION_LANGUAGE
+        defaults["pauseMode"] = DEFAULT_PAUSE_MODE
+        defaults["repeats"] = DEFAULT_REPEATS
         return defaults
 
     data: dict[str, Any] = {
@@ -60,6 +77,7 @@ def as_client_dict(user_settings: UserSettings | None) -> dict[str, Any]:
     }
     data["fontSize"] = user_settings.font_size
     data["language"] = user_settings.language or django_settings.DEFAULT_TRANSLATION_LANGUAGE
+    data.update({name: getattr(user_settings, field) for name, field in SHADOWING_SETTINGS.items()})
     return data
 
 
@@ -108,6 +126,22 @@ def update_user_setting(user: User, name: str, value: Any) -> None:
         if value not in django_settings.TRANSLATION_LANGUAGES:
             raise InvalidSettingValueError(f"Неизвестный язык перевода: «{value}».")
         field = "language"
+
+    elif name == "pauseMode":
+        if value not in PAUSE_MODES:
+            raise InvalidSettingValueError(f"Неизвестный режим паузы: «{value}».")
+        field = SHADOWING_SETTINGS[name]
+
+    elif name == "repeats":
+        # isinstance(True, int) — истина, поэтому булев отсекаем отдельно:
+        # иначе true записалось бы как один повтор.
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise InvalidSettingValueError("Число повторов должно быть целым.")
+        if not MIN_REPEATS <= value <= MAX_REPEATS:
+            raise InvalidSettingValueError(
+                f"Повторов должно быть от {MIN_REPEATS} до {MAX_REPEATS}."
+            )
+        field = SHADOWING_SETTINGS[name]
 
     else:
         raise UnknownSettingError(f"Неизвестная настройка: «{name}».")

@@ -87,6 +87,16 @@ class User(AbstractUser):
 # Размер, который показывает переключатель, пока пользователь ничего не выбрал.
 DEFAULT_FONT_SIZE = "md"
 
+# Пауза после предложения: "auto" — полторы его длительности, "fixed" — две
+# секунды независимо от длины (DESIGN.md §7).
+PAUSE_MODES = ("auto", "fixed")
+DEFAULT_PAUSE_MODE = "auto"
+
+# Сколько раз повторить предложение перед переходом к следующему.
+MIN_REPEATS = 1
+MAX_REPEATS = 5
+DEFAULT_REPEATS = 1
+
 
 class UserSettings(models.Model):
     """Reading preferences of one user.
@@ -119,6 +129,13 @@ class UserSettings(models.Model):
     # в миграцию, и смена языка по умолчанию потребовала бы новой. choices нет
     # намеренно — по правилу проекта новый язык не должен стоить миграции.
     language = models.CharField(max_length=8, blank=True, default="")
+
+    # --- настройки Shadowing ---
+
+    # choices нет по той же причине, что у языка: список режимов проверяется
+    # в сервисе, а не в схеме, и третий режим не должен стоить миграции.
+    pause_mode = models.CharField(max_length=8, default=DEFAULT_PAUSE_MODE)
+    repeats = models.PositiveSmallIntegerField(default=DEFAULT_REPEATS)
 
     class Meta:
         verbose_name = "настройки пользователя"
