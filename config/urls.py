@@ -13,6 +13,7 @@ urlpatterns = [
     path("", include("apps.accounts.urls")),
     path("", include("apps.core.urls")),
     path("reader/", include("apps.reader.urls")),
+    path("shadowing/", include("apps.shadowing.urls")),
     path("library/", include("apps.library.urls")),
 ]
 

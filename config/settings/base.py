@@ -53,6 +53,7 @@ LOCAL_APPS = [
     "apps.translation",
     "apps.tts",
     "apps.reader",
+    "apps.shadowing",
     "apps.library",
 ]
 

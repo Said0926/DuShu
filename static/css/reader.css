@@ -1,30 +1,10 @@
 /*
  * reader.css — страница «Чтение» (DESIGN.md §6).
- * Разметка самой китайской строки живёт в text.css.
+ *
+ * Разметка самой китайской строки живёт в text.css, а пустое состояние,
+ * плашка-предупреждение и подписи-лейблы — в base.css: всё это понадобилось
+ * и «Shadowing», то есть это уже каркас интерфейса, а не одна страница.
  */
-
-/* На главной карточка идёт после hero и отбивается сверху сама.
-   Здесь она следует за вводным текстом, поэтому лишний отступ убираем. */
-.page--empty .input-card {
-  margin-top: 0;
-}
-
-/* Страница целиком про чтение текста, поэтому поле ввода здесь крупнее,
-   чем в карточке на главной. */
-.page--empty .input-card__textarea {
-  min-height: 260px;
-}
-
-.notice {
-  margin-bottom: var(--space-5);
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-line-strong);
-  border-left: 3px solid var(--color-accent);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface);
-  font-size: var(--text-sm);
-  color: var(--color-text-2);
-}
 
 /* align-items: stretch — сайдбар тянется на высоту полотна, а не обрезается
    по своему содержимому. */
@@ -64,24 +44,6 @@
   position: sticky;
   /* Прилипает под шапкой, чтобы настройки были под рукой в длинном тексте. */
   top: var(--space-5);
-}
-
-.settings__label {
-  margin-bottom: var(--space-2);
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: var(--text-label);
-  color: var(--color-text-3);
-}
-
-.settings__label:not(:first-child) {
-  margin-top: var(--space-4);
-}
-
-.settings__divider {
-  margin: var(--space-4) 0;
-  border: none;
-  border-top: 1px solid var(--color-line);
 }
 
 .settings__note {

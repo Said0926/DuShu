@@ -1,0 +1,397 @@
+/*
+ * shadowing.css — страница «Shadowing» (DESIGN.md §7).
+ *
+ * Разметка китайской строки приходит из text.css, каркас — из base.css.
+ * Здесь только то, чего нет больше нигде: список предложений, сцена,
+ * прогресс, транспорт и степпер.
+ */
+
+.shadowing {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-8);
+}
+
+/* ---------- список предложений ---------- */
+
+.sentence-list {
+  width: 360px;
+  flex-shrink: 0;
+  align-self: flex-start;
+  position: sticky;
+  top: var(--space-5);
+}
+
+.sentence-list__items {
+  /* Список нумерованный по смыслу (порядок предложений важен), но номер
+     рисуется бейджем, поэтому собственный маркер убираем. */
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  /* Длинный текст не должен растягивать страницу: список скроллится сам. */
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.sentence-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  height: 66px;
+  padding: 0 var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sentence-row:hover {
+  background: var(--color-surface-2);
+}
+
+.sentence-row.is-current {
+  background: var(--color-surface-2);
+  /* inset-рамка вместо border: она не меняет размеры строки, поэтому список
+     не дёргается при переходе между предложениями. */
+  box-shadow: inset 0 0 0 1px var(--color-line-pop);
+}
+
+.sentence-row__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  background: var(--switch-off);
+  font-size: var(--text-caption);
+  color: var(--color-text-3);
+}
+
+.sentence-row.is-current .sentence-row__badge {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-weight: 600;
+}
+
+.sentence-row__text {
+  flex: 1;
+  /* Три свойства вместе и дают многоточие: без nowrap текст переносится,
+     без hidden — вылезает за строку. */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-family: var(--font-cn);
+  font-size: 17px;
+  color: var(--color-text-2);
+}
+
+.sentence-row__time {
+  flex-shrink: 0;
+  font-size: var(--text-caption);
+  color: var(--color-text-4);
+}
+
+/* Пройденное предложение гаснет — видно, где остановились. */
+.sentence-row.is-done .sentence-row__text,
+.sentence-row.is-done .sentence-row__time {
+  color: var(--color-text-4);
+}
+
+.sentence-row.is-done .sentence-row__badge {
+  color: var(--color-text-4);
+}
+
+/* ---------- сцена ---------- */
+
+.stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.stage__status {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-sm);
+  color: var(--color-text-3);
+}
+
+.stage__repeat {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Сцена занимает середину и центрирует предложение по вертикали, чтобы короткая
+   фраза не прилипала к верхнему краю. */
+.stage__sentences {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+}
+
+/* Видно только текущее предложение. Остальные остаются в разметке — вместе с
+   аудио и таймингами, поэтому плееру нечего догружать. */
+.stage__sentence {
+  display: none;
+}
+
+.stage__sentence.is-current {
+  display: flex;
+  justify-content: center;
+  /* 50px — это размер сцены из DESIGN.md §7, а не один из --reader-*:
+     здесь читают одну фразу, а не страницу текста. */
+  font-size: 50px;
+  row-gap: var(--space-6);
+}
+
+/* Караоке-подсветка. Подчёркивание обязательно: цвет не должен быть
+   единственным признаком (DESIGN.md §10), да и цвета тонов внутри слова
+   остаются своими. */
+.word.is-speaking {
+  background: var(--color-accent-strong);
+  box-shadow: inset 0 -3px 0 var(--color-accent);
+  border-radius: 10px;
+}
+
+/* ---------- прогресс ---------- */
+
+.progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.progress__time {
+  flex-shrink: 0;
+  font-size: var(--text-caption);
+  color: var(--color-text-4);
+  /* Моноширинные цифры: таймер не дёргает соседние элементы при смене секунды. */
+  font-variant-numeric: tabular-nums;
+}
+
+/* appearance: none убирает вид полосы, принятый в системе, — иначе браузер
+   рисует свой стиль и ни высота, ни цвет не применяются. */
+.progress__track {
+  flex: 1;
+  appearance: none;
+  height: 6px;
+  border: none;
+  border-radius: 3px;
+  background: var(--switch-off);
+  overflow: hidden;
+}
+
+/* Заливку у <progress> нельзя покрасить одним правилом: у движков для неё
+   отдельные псевдоэлементы, и объединить их в один селектор нельзя —
+   непонятный движку селектор отбрасывает всё правило целиком. */
+.progress__track::-webkit-progress-bar {
+  background: var(--switch-off);
+}
+
+.progress__track::-webkit-progress-value {
+  background: var(--color-accent);
+}
+
+.progress__track::-moz-progress-bar {
+  background: var(--color-accent);
+}
+
+/* ---------- транспорт ---------- */
+
+.transport {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.transport__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-size: 18px;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.transport__btn:hover {
+  border-color: var(--color-line-pop);
+  background: var(--color-surface-2);
+}
+
+.transport__btn--main {
+  width: 76px;
+  height: 76px;
+  border: none;
+  border-radius: 26px;
+  background: var(--color-accent);
+  box-shadow: var(--shadow-accent);
+  font-size: 22px;
+  color: var(--color-on-accent);
+}
+
+.transport__btn--main:hover {
+  background: var(--color-accent-hover);
+}
+
+/* Одна кнопка, две иконки: что видно, решает класс на контейнере. */
+.transport__icon-pause,
+.shadowing.is-playing .transport__icon-play {
+  display: none;
+}
+
+.shadowing.is-playing .transport__icon-pause {
+  display: inline;
+}
+
+.transport__speed {
+  margin-left: var(--space-4);
+}
+
+/* ---------- нижняя строка настроек ---------- */
+
+.stage__settings {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.stage__setting .settings__label {
+  margin-top: 0;
+}
+
+/* Переключатели уезжают вправо: слева режим паузы и повторы, справа показ. */
+.stage__switches {
+  margin-left: auto;
+  min-width: 220px;
+}
+
+/* ---------- степпер ---------- */
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 3px;
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-2);
+}
+
+.stepper__btn {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  font-size: 18px;
+  color: var(--color-text-2);
+  cursor: pointer;
+}
+
+.stepper__btn:hover {
+  background: var(--color-line-strong);
+  color: var(--color-text);
+}
+
+.stepper__value {
+  min-width: 32px;
+  text-align: center;
+  font-size: var(--text-ui);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* ---------- адаптив (DESIGN.md §9) ---------- */
+
+@media (max-width: 900px) {
+  .shadowing {
+    flex-direction: column;
+    /* Место под зафиксированный снизу транспорт, чтобы он не накрывал текст. */
+    padding-bottom: 96px;
+  }
+
+  /* Список сворачивается в горизонтальную ленту над сценой. */
+  .sentence-list {
+    width: 100%;
+    position: static;
+  }
+
+  .sentence-list__items {
+    display: flex;
+    gap: var(--space-2);
+    max-height: none;
+    overflow-x: auto;
+  }
+
+  .sentence-row {
+    width: auto;
+    max-width: 240px;
+  }
+
+  .stage__sentence.is-current {
+    font-size: var(--reader-md);
+  }
+
+  .canvas {
+    padding: var(--space-6) var(--space-5);
+  }
+
+  /* Транспорт остаётся под рукой при любом положении страницы. */
+  .transport {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 5;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    border-top: 1px solid var(--color-line);
+    background: var(--color-surface);
+  }
+
+  .transport__btn--main {
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
+  }
+
+  /* Скорость не помещается в один ряд с кнопками — переносим её строкой ниже. */
+  .transport__speed {
+    order: 5;
+    width: 100%;
+    margin-left: 0;
+    justify-content: center;
+  }
+
+  .stage__switches {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .stage__sentence.is-current {
+    font-size: var(--reader-sm);
+  }
+
+  .panel {
+    padding: var(--space-4);
+  }
+}
