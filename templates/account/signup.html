@@ -24,4 +24,6 @@
 
     <button class="btn btn--primary auth__submit" type="submit">Создать аккаунт</button>
   </form>
+
+  {% include "includes/social_login.html" with process="login" label="Зарегистрироваться" %}
 {% endblock %}

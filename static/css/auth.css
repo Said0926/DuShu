@@ -64,6 +64,31 @@
   flex: 1 1 auto;
 }
 
+/* Разделитель «или» между формой и кнопками провайдеров: подпись посередине,
+   линии по бокам тянутся на оставшуюся ширину. */
+.auth__divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+  font-size: var(--text-caption);
+  color: var(--color-text-3);
+}
+
+/* Отступ задан форме, а не разделителю: в профиле разделителя нет,
+   а воздух перед кнопкой нужен всё равно. */
+.auth__social {
+  margin-top: var(--space-4);
+}
+
+.auth__divider::before,
+.auth__divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--color-line);
+}
+
 .auth__hint {
   margin-top: var(--space-5);
   font-size: var(--text-caption);

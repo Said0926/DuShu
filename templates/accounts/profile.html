@@ -1,4 +1,5 @@
 {% extends "accounts/base_card.html" %}
+{% load socialaccount %}
 
 {% block title %}Профиль — Dúshū{% endblock %}
 {% block auth_title %}Профиль{% endblock %}
@@ -13,10 +14,33 @@
       <dt class="profile-list__key">Аккаунт создан</dt>
       <dd class="profile-list__value">{{ user.date_joined|date:"j E Y" }}</dd>
     </div>
+
+    {% comment %} Строку показываем, только если соцвход вообще настроен:
+       без ключей в .env говорить о привязке нечего. {% endcomment %}
+    {% get_providers as socialaccount_providers %}
+    {% if socialaccount_providers %}
+      {% get_social_accounts user as connected %}
+      <div class="profile-list__row">
+        <dt class="profile-list__key">Google</dt>
+        <dd class="profile-list__value">
+          {% if connected.google %}привязан{% else %}не привязан{% endif %}
+        </dd>
+      </div>
+    {% endif %}
   </dl>
 
   <div class="auth__actions">
-    <a class="btn btn--ghost" href="{% url 'account_change_password' %}">Сменить пароль</a>
+    {% comment %} У аккаунта, созданного через Google, пароля нет вовсе —
+       менять нечего, его нужно задать. {% endcomment %}
+    {% if user.has_usable_password %}
+      <a class="btn btn--ghost" href="{% url 'account_change_password' %}">Сменить пароль</a>
+    {% else %}
+      <a class="btn btn--ghost" href="{% url 'account_set_password' %}">Задать пароль</a>
+    {% endif %}
     <a class="btn btn--ghost" href="{% url 'account_logout' %}">Выйти</a>
   </div>
+
+  {% if not connected.google %}
+    {% include "includes/social_login.html" with process="connect" label="Привязать" no_divider=True %}
+  {% endif %}
 {% endblock %}

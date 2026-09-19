@@ -1,0 +1,14 @@
+{% extends "socialaccount/base_entrance.html" %}
+
+{% block head_title %}Вход не удался{% endblock %}
+{% block auth_title %}Вход не удался{% endblock %}
+
+{% block auth_body %}
+  <p class="auth__lead">
+    Провайдер не подтвердил вход — возможно, вы отменили его в окне Google
+    или истекло время ожидания.
+  </p>
+  <div class="auth__actions">
+    <a class="btn btn--primary" href="{% url 'account_login' %}">Попробовать ещё раз</a>
+  </div>
+{% endblock %}

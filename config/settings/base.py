@@ -37,10 +37,12 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
-    # allauth — вход и регистрация; allauth.account — вход по email и паролю.
-    # Соцвход (allauth.socialaccount) добавляется отдельно, вместе с Google.
+    # allauth — общая часть; account — вход по email и паролю;
+    # socialaccount и google — вход через Google.
     "allauth",
     "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
 ]
 
 LOCAL_APPS = [
@@ -144,6 +146,50 @@ ACCOUNT_EMAIL_VERIFICATION = "optional"
 # Свои формы нужны ровно для одного: убрать placeholder'ы, которые allauth
 # заполняет теми же словами, что и подписи полей. Его шаблоны рисуют поля
 # без подписей, наши — с подписями, и текст двоился бы в каждом поле.
+# --- вход через Google ---
+
+GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID", default="")
+GOOGLE_CLIENT_SECRET = env("GOOGLE_CLIENT_SECRET", default="")
+
+SOCIALACCOUNT_PROVIDERS: dict[str, dict] = {
+    "google": {
+        "SCOPE": ["profile", "email"],
+        # online: refresh token не запрашиваем. Он нужен, чтобы ходить в API
+        # Google от имени пользователя, а нам нужен только факт входа.
+        "AUTH_PARAMS": {"access_type": "online"},
+    }
+}
+
+# Ключи читаем из .env, а не из таблицы SocialApp в админке: секреты не уезжают
+# в базу, и после пересоздания базы ничего не нужно заводить руками.
+#
+# Секцию APP добавляем только когда ключи заданы: именно по её наличию allauth
+# считает провайдер настроенным. Без ключей он не попадёт в список провайдеров,
+# и кнопка «Войти через Google» просто не отрисуется — вместо того чтобы вести
+# на страницу с ошибкой.
+if GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET:
+    SOCIALACCOUNT_PROVIDERS["google"]["APP"] = {
+        "client_id": GOOGLE_CLIENT_ID,
+        "secret": GOOGLE_CLIENT_SECRET,
+        "key": "",
+    }
+
+# Аккаунт, созданный через Google, письмо с подтверждением не получает:
+# Google адрес уже проверил.
+SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
+
+# Что происходит, если человек сначала зарегистрировался по email и паролю,
+# а потом нажал «Войти через Google» с тем же адресом. По умолчанию allauth
+# упирается в «этот email занят» и предлагает тупик. С этими двумя настройками
+# он вместо этого пускает в существующий аккаунт и привязывает к нему Google.
+#
+# По умолчанию оба выключены намеренно: провайдер, который врёт про
+# подтверждённость адреса, вошёл бы в любой чужой аккаунт. Включать их можно
+# только для провайдеров, которым доверяешь полностью. Google такой; если
+# появится второй провайдер, это решение нужно пересмотреть.
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+
 ACCOUNT_FORMS = {
     "login": "apps.accounts.forms.LoginForm",
     "signup": "apps.accounts.forms.SignupForm",
