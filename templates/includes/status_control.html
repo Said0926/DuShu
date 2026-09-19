@@ -1,0 +1,22 @@
+{% comment %}
+Переключатель статуса текста.
+
+Параметры:
+    text_pk — id текста;
+    current — текущий статус.
+
+Один и тот же контрол стоит на карточке в библиотеке и в шапке «Чтения»,
+поэтому он вынесен сюда. Значения приходят из context processor'а библиотеки,
+а сохраняет выбор library.js, слушая событие от controls.js.
+{% endcomment %}
+<div class="segmented status-control"
+     role="group"
+     aria-label="Статус текста"
+     data-status-url="{% url 'library:status' text_pk %}">
+  {% for value, label in reading_statuses %}
+    <button class="segmented__item {% if current == value %}is-active{% endif %}"
+            type="button"
+            aria-pressed="{% if current == value %}true{% else %}false{% endif %}"
+            data-value="{{ value }}">{{ label }}</button>
+  {% endfor %}
+</div>

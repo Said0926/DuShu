@@ -13,70 +13,163 @@
   <header class="page__header">
     <div>
       <h1 class="page__title">Библиотека</h1>
-      {% if texts %}
-        <p class="page__meta">
-          {{ texts|length }} {{ texts|length|plural_ru:"текст,текста,текстов" }}
-        </p>
-      {% endif %}
+      <p class="page__meta">Тексты по подборкам. Свои можно складывать и в уровни HSK.</p>
     </div>
   </header>
 
-  {% if not texts %}
-    <p class="page__intro">
-      Здесь будут тексты, которые вы сохранили. Откройте любой текст в «Чтении»
-      и нажмите «Сохранить в библиотеку» — переводы к нему уже в кэше,
-      поэтому открывать его снова ничего не стоит.
-    </p>
-    <div class="library__empty-actions">
-      <a class="btn btn--primary" href="{% url 'reader:read' %}">Открыть «Чтение»</a>
-    </div>
-  {% else %}
-    <ul class="library">
-      {% for text in texts %}
-        <li class="library__item panel">
-          <div class="library__head">
-            <h2 class="library__title">{{ text.title }}</h2>
-            <p class="library__meta">Сохранён {{ text.created_at|date:"j E Y" }}</p>
-          </div>
+  <form class="library__new" method="post" action="{% url 'library:collection-create' %}">
+    {% csrf_token %}
+    <label class="field">
+      <span class="field__label">Новая подборка</span>
+      <input type="text" name="title" maxlength="60" placeholder="Например, «Новости»">
+    </label>
+    <button class="btn btn--ghost" type="submit">Создать</button>
+  </form>
 
-          <div class="library__actions">
-            {% comment %} Открываем обычной формой: «Чтение» получает текст тем же
-               способом, что и с главной, и ничего не знает про библиотеку.
-               Поэтому между двумя фичами нет зависимости. {% endcomment %}
-            <form method="post" action="{% url 'reader:read' %}">
-              {% csrf_token %}
-              <input type="hidden" name="text" value="{{ text.content }}">
-              <input type="hidden" name="lang" value="{{ reading_settings.language }}">
-              <input type="hidden" name="title" value="{{ text.title }}">
-              <input type="hidden" name="saved" value="1">
-              <button class="btn btn--primary" type="submit">Читать</button>
-            </form>
+  <div class="library">
+    {% for group in groups %}
+      {% comment %} details раскрывается силами браузера: подборки работают
+         и без JS. Открытой по умолчанию оставляем только непустую свою —
+         пять раскрытых уровней сразу превратили бы страницу в простыню.
+      {% endcomment %}
+      <details class="collection" {% if group.rows and not group.is_system %}open{% endif %}>
+        <summary class="collection__head">
+          <span class="collection__title">{{ group.title }}</span>
+          <span class="collection__count">
+            {% if group.total %}
+              {{ group.total }} {{ group.total|plural_ru:"текст,текста,текстов" }}
+              {% if group.done %}· прочитано {{ group.done }}{% endif %}
+            {% else %}
+              пусто
+            {% endif %}
+          </span>
+        </summary>
 
-            {% comment %} Shadowing появится на этапе 8. {% endcomment %}
-            <button class="btn btn--ghost" type="button" disabled>Shadowing</button>
+        <div class="collection__body">
+          {% if not group.rows %}
+            <p class="collection__empty">
+              {% if group.is_system %}
+                Готовые тексты для «{{ group.title }}» появятся позже.
+                Пока сюда можно положить свой — из «Чтения» или переместив из другой подборки.
+              {% else %}
+                Пока пусто.
+              {% endif %}
+            </p>
+          {% endif %}
 
-            {% comment %} details раскрывается силами браузера: форма
-               переименования и подтверждение удаления работают и без JS,
-               без диалогов и без отдельных страниц. {% endcomment %}
-            <details class="library__more">
-              <summary class="btn btn--ghost">Переименовать</summary>
-              <form class="library__rename"
-                    method="post"
-                    action="{% url 'library:rename' text.pk %}">
-                {% csrf_token %}
-                <label class="field">
-                  <span class="field__label">Название</span>
-                  <input type="text" name="title" value="{{ text.title }}" maxlength="41">
-                </label>
-                <button class="btn btn--primary" type="submit">Сохранить</button>
-              </form>
-            </details>
+          {% for row in group.rows %}
+            <article class="text-card">
+              <div class="text-card__top">
+                <div class="text-card__head">
+                  <h2 class="text-card__title">{{ row.text.title }}</h2>
+                  <p class="text-card__meta">
+                    {% if row.is_shared %}
+                      Общий текст
+                    {% else %}
+                      Сохранён {{ row.text.created_at|date:"j E Y" }}
+                    {% endif %}
+                  </p>
+                </div>
 
-            <a class="btn btn--ghost" href="{% url 'library:delete' text.pk %}">Удалить</a>
-          </div>
-        </li>
-      {% endfor %}
-    </ul>
-  {% endif %}
+                {% comment %} Переключение статуса — единственное место на этой
+                   странице, которому нужен JS: он ловит событие от segmented
+                   из controls.js и отправляет значение. {% endcomment %}
+                {% include "includes/status_control.html" with text_pk=row.text.pk current=row.status %}
+              </div>
+
+              <div class="text-card__actions">
+                {% comment %} Открываем обычной формой: «Чтение» получает текст тем же
+                   способом, что и с главной, и ничего не знает про библиотеку. {% endcomment %}
+                <form method="post" action="{% url 'reader:read' %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="text" value="{{ row.text.content }}">
+                  <input type="hidden" name="lang" value="{{ reading_settings.language }}">
+                  <input type="hidden" name="title" value="{{ row.text.title }}">
+                  <input type="hidden" name="saved" value="1">
+                  {% comment %} id и статус едут в «Чтение» скрытыми полями,
+                     чтобы оно могло показать тот же переключатель, ничего
+                     не зная про библиотеку. {% endcomment %}
+                  <input type="hidden" name="saved_id" value="{{ row.text.pk }}">
+                  <input type="hidden" name="status" value="{{ row.status }}">
+                  <button class="btn btn--primary" type="submit">Читать</button>
+                </form>
+
+                {% comment %} Shadowing появится на следующем этапе. {% endcomment %}
+                <button class="btn btn--ghost" type="button" disabled>Shadowing</button>
+
+                {% comment %} Общий текст принадлежит всем сразу, поэтому менять
+                   его через сайт нельзя — только читать и отмечать прогресс.
+                {% endcomment %}
+                {% if not row.is_shared %}
+                  <details class="card-menu">
+                    <summary class="btn btn--ghost">Переместить</summary>
+                    <form class="card-menu__form"
+                          method="post"
+                          action="{% url 'library:move' row.text.pk %}">
+                      {% csrf_token %}
+                      <label class="field">
+                        <span class="field__label">Подборка</span>
+                        <select name="collection">
+                          <option value="">Без подборки</option>
+                          {% for collection in collections %}
+                            <option value="{{ collection.pk }}"
+                                    {% if collection.pk == row.text.collection_id %}selected{% endif %}>
+                              {{ collection.title }}
+                            </option>
+                          {% endfor %}
+                        </select>
+                      </label>
+                      <button class="btn btn--primary" type="submit">Переместить</button>
+                    </form>
+                  </details>
+
+                  <details class="card-menu">
+                    <summary class="btn btn--ghost">Переименовать</summary>
+                    <form class="card-menu__form"
+                          method="post"
+                          action="{% url 'library:rename' row.text.pk %}">
+                      {% csrf_token %}
+                      <label class="field">
+                        <span class="field__label">Название</span>
+                        <input type="text" name="title" value="{{ row.text.title }}" maxlength="41">
+                      </label>
+                      <button class="btn btn--primary" type="submit">Сохранить</button>
+                    </form>
+                  </details>
+
+                  <a class="btn btn--ghost" href="{% url 'library:delete' row.text.pk %}">Удалить</a>
+                {% endif %}
+              </div>
+            </article>
+          {% endfor %}
+
+          {% if group.collection and not group.is_system %}
+            <div class="collection__tools">
+              <details class="card-menu">
+                <summary class="btn btn--ghost">Переименовать подборку</summary>
+                <form class="card-menu__form"
+                      method="post"
+                      action="{% url 'library:collection-rename' group.collection.pk %}">
+                  {% csrf_token %}
+                  <label class="field">
+                    <span class="field__label">Название</span>
+                    <input type="text" name="title" value="{{ group.title }}" maxlength="60">
+                  </label>
+                  <button class="btn btn--primary" type="submit">Сохранить</button>
+                </form>
+              </details>
+
+              <a class="btn btn--ghost"
+                 href="{% url 'library:collection-delete' group.collection.pk %}">Удалить подборку</a>
+            </div>
+          {% endif %}
+        </div>
+      </details>
+    {% endfor %}
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'js/library.js' %}" defer></script>
 {% endblock %}

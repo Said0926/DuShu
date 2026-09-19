@@ -8,10 +8,10 @@ from apps.library.exceptions import EmptyTextError, InvalidTitleError
 from apps.library.models import SavedText
 from apps.library.services import (
     delete_text,
-    get_text,
-    list_texts,
+    get_owned_text,
     rename_text,
     save_text,
+    visible_texts,
 )
 
 TEXT = "今天天气很好，我打算去公园走走。"
@@ -71,7 +71,7 @@ def test_list_shows_only_your_own_texts(user: User, other_user: User) -> None:
     save_text(user, TEXT)
     save_text(other_user, "再见。")
 
-    assert [text.owner for text in list_texts(user)] == [user]
+    assert [text.owner for text in visible_texts(user)] == [user]
 
 
 @pytest.mark.django_db
@@ -80,7 +80,7 @@ def test_getting_someone_elses_text_fails(user: User, other_user: User) -> None:
     text, _ = save_text(user, TEXT)
 
     with pytest.raises(SavedText.DoesNotExist):
-        get_text(other_user, text.pk)
+        get_owned_text(other_user, text.pk)
 
 
 @pytest.mark.django_db

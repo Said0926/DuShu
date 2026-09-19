@@ -23,6 +23,11 @@
     </div>
     {% if rows %}
       <div class="page__actions">
+        {% comment %} У текста из библиотеки статус можно отметить прямо здесь,
+           не возвращаясь к списку. {% endcomment %}
+        {% if saved_id %}
+          {% include "includes/status_control.html" with text_pk=saved_id current=text_status %}
+        {% endif %}
         {% if user.is_authenticated %}
           <button class="btn btn--ghost"
                   type="button"
@@ -34,7 +39,7 @@
         {% else %}
           <a class="btn btn--ghost" href="{% url 'account_login' %}">Войдите, чтобы сохранить</a>
         {% endif %}
-        {% comment %} Shadowing заработает на этапе 8. {% endcomment %}
+        {% comment %} Shadowing заработает на следующем этапе. {% endcomment %}
         <button class="btn btn--primary" type="button" disabled>Открыть в Shadowing</button>
       </div>
     {% endif %}

@@ -410,7 +410,8 @@ ul {
   color: var(--color-text-3);
 }
 
-.field input {
+.field input,
+.field select {
   width: 100%;
   border: none;
   background: transparent;
@@ -418,6 +419,12 @@ ul {
   font-family: var(--font-ui);
   font-size: var(--text-body);
   color: var(--color-text);
+}
+
+/* Список вариантов рисует система, и в тёмной теме он остаётся тёмным только
+   благодаря color-scheme: dark из :root. Здесь задаём вид самого поля. */
+.field select {
+  cursor: pointer;
 }
 
 .field input::placeholder {

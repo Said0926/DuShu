@@ -1,92 +1,180 @@
 /*
- * library.css — список сохранённых текстов.
+ * library.css — подборки и сохранённые тексты.
  *
  * DESIGN.md эту страницу не описывает, поэтому она собрана из готовых
- * компонентов: карточка — та же .panel, что у сайдбара настроек, кнопки те же,
- * поле переименования — .field со страниц аккаунта.
+ * компонентов: подборка — та же .panel, что у сайдбара настроек, статус —
+ * тот же сегментированный контрол, что и «Размер шрифта», поля — .field
+ * со страниц аккаунта.
  */
 
-/* Ширину и отступы задаёт .page — списку остаётся только разложить карточки. */
 .library {
   display: flex;
   flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* ---------- подборка ---------- */
+
+.collection {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+}
+
+/* summary по умолчанию — list-item с треугольником. Убираем оба, свой
+   указатель рисуем через ::after, чтобы он поворачивался при раскрытии. */
+.collection__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  list-style: none;
+  cursor: pointer;
+}
+
+.collection__head::-webkit-details-marker {
+  display: none;
+}
+
+.collection__head::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid var(--color-text-3);
+  border-bottom: 1.5px solid var(--color-text-3);
+  transform: rotate(45deg);
+  transition: transform 0.15s;
+}
+
+.collection[open] > .collection__head::after {
+  transform: rotate(-135deg);
+}
+
+.collection__title {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  font-weight: 600;
+}
+
+.collection__count {
+  margin-left: auto;
+  font-size: var(--text-caption);
+  color: var(--color-text-3);
+}
+
+.collection__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: 0 var(--space-5) var(--space-5);
+}
+
+.collection__empty {
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--color-text-4);
+}
+
+.collection__tools {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-line);
+}
+
+/* ---------- карточка текста ---------- */
+
+.text-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--color-bg);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+}
+
+.text-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: var(--space-4);
 }
 
-/* Заголовок занимает всё свободное место, кнопки не сжимаются: иначе длинное
-   название выталкивало бы их на вторую строку, и карточки в списке выглядели
-   бы по-разному в зависимости от длины текста. */
-.library__item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-5);
-}
-
-.library__head {
+.text-card__head {
   flex: 1;
-  /* min-width: 0 обязателен: без него flex-элемент не даёт тексту переноситься
-     и растягивает карточку шире контейнера. */
+  /* min-width: 0 обязателен: без него flex-элемент не даёт длинному заголовку
+     переноситься и растягивает карточку шире контейнера. */
   min-width: 0;
 }
 
 /* Заголовок берётся из начала самого текста, то есть это китайский —
    значит и шрифт китайский, а не дисплейный. */
-.library__title {
+.text-card__title {
   font-family: var(--font-cn);
-  font-size: var(--text-h3);
+  font-size: var(--text-body);
   font-weight: 600;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
-.library__meta {
+.text-card__meta {
   margin-top: var(--space-1);
   font-size: var(--text-caption);
   color: var(--color-text-3);
 }
 
-.library__actions {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
+.text-card__status {
   flex-shrink: 0;
 }
 
-/* summary по умолчанию рисуется с треугольником и как list-item — убираем,
-   чтобы он выглядел и вёл себя как обычная кнопка. */
-.library__more > summary {
+.text-card__actions {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+/* ---------- раскрывающееся меню на карточке ---------- */
+
+.card-menu > summary {
   display: inline-flex;
   list-style: none;
 }
 
-.library__more > summary::-webkit-details-marker {
+.card-menu > summary::-webkit-details-marker {
   display: none;
 }
 
-.library__rename {
+.card-menu__form {
   display: flex;
   align-items: flex-end;
   gap: var(--space-3);
   margin-top: var(--space-3);
 }
 
-/* По левому краю, как и текст над ней: центрированная кнопка под
-   выключенным по левому краю абзацем выглядит случайной. */
-.library__empty-actions {
+/* ---------- создание подборки ---------- */
+
+.library__new {
   display: flex;
-  margin-top: var(--space-6);
+  align-items: flex-end;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.library__new .field {
+  flex: 1;
 }
 
 @media (max-width: 900px) {
-  .library__item {
+  .text-card__top {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .library__actions {
-    flex-wrap: wrap;
-  }
-
-  .library__rename {
+  .card-menu__form,
+  .library__new {
     flex-direction: column;
     align-items: stretch;
   }

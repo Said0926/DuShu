@@ -22,6 +22,8 @@ class ReaderForm(forms.Form):
     # можно, но ничего, кроме собственной надписи на кнопке, это не изменит.
     title = forms.CharField(required=False, max_length=120)
     saved = forms.BooleanField(required=False)
+    saved_id = forms.IntegerField(required=False)
+    status = forms.CharField(required=False, max_length=20)
 
     def clean_text(self) -> str:
         """Reject text longer than the limit, in the user's language."""
