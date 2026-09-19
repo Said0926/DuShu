@@ -83,6 +83,9 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                # Настройки чтения нужны и главной, и «Чтению», и (позже)
+                # Shadowing, поэтому отдаём их всем шаблонам сразу.
+                "apps.accounts.context_processors.reading_settings",
             ],
         },
     },

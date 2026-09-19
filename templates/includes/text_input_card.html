@@ -26,9 +26,9 @@
     <div class="input-card__left">
       <div class="segmented" role="group" aria-label="Язык перевода">
         {% for code, label_text in translation_languages.items %}
-          <button class="segmented__item {% if code == default_language %}is-active{% endif %}"
+          <button class="segmented__item {% if code == reading_settings.language %}is-active{% endif %}"
                   type="button"
-                  aria-pressed="{% if code == default_language %}true{% else %}false{% endif %}"
+                  aria-pressed="{% if code == reading_settings.language %}true{% else %}false{% endif %}"
                   data-value="{{ code }}">{{ label_text }}</button>
         {% endfor %}
       </div>
@@ -45,5 +45,5 @@
   </div>
 
   {# Выбранный язык уезжает на сервер обычным полем формы. #}
-  <input type="hidden" name="lang" id="id_lang" value="{{ default_language }}">
+  <input type="hidden" name="lang" id="id_lang" value="{{ reading_settings.language }}">
 </form>

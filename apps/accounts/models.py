@@ -82,3 +82,47 @@ class User(AbstractUser):
 
     def __str__(self) -> str:
         return self.email
+
+
+# Размер, который показывает переключатель, пока пользователь ничего не выбрал.
+DEFAULT_FONT_SIZE = "md"
+
+
+class UserSettings(models.Model):
+    """Reading preferences of one user.
+
+    A guest keeps the same values in ``localStorage``; signing in moves them
+    here, so they follow the person between devices and browsers. A new setting
+    is added as one more field with a default, which leaves existing rows
+    working — that is the whole reason this is a table of columns rather than
+    one JSON blob.
+
+    The row is created on demand by ``services.get_user_settings``, not by a
+    signal on user creation.
+    """
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="settings")
+
+    show_pinyin = models.BooleanField(default=True)
+    show_tones = models.BooleanField(default=True)
+    show_translation = models.BooleanField(default=True)
+    show_hints = models.BooleanField(default=True)
+
+    # Пустая строка означает «размер не выбирали». Это не то же самое, что "md":
+    # без явного выбора на узком экране действует уменьшенный кегль из
+    # медиазапроса (.reader:not([data-size]) в reader.css), а записанное "md"
+    # его бы перебило и текст на телефоне остался бы великоват.
+    font_size = models.CharField(max_length=2, blank=True, default="")
+
+    # Пустая строка означает «взять settings.DEFAULT_TRANSLATION_LANGUAGE».
+    # Записать сюда сам язык по умолчанию нельзя: значение запеклось бы
+    # в миграцию, и смена языка по умолчанию потребовала бы новой. choices нет
+    # намеренно — по правилу проекта новый язык не должен стоить миграции.
+    language = models.CharField(max_length=8, blank=True, default="")
+
+    class Meta:
+        verbose_name = "настройки пользователя"
+        verbose_name_plural = "настройки пользователей"
+
+    def __str__(self) -> str:
+        return f"Настройки {self.user.email}"

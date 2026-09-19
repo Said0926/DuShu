@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="{% static 'css/text.css' %}">
   {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body{% if settings_on_server %} data-settings-url="{% url 'accounts:settings' %}"{% endif %}>
   <header class="site-header">
     <a class="logo" href="{% url 'core:home' %}">
       <span class="logo__tile" aria-hidden="true">读</span>
@@ -68,6 +68,14 @@
      поэтому DOM уже доступен и не нужен обработчик DOMContentLoaded. {% endcomment %}
   {% comment %} settings-store.js идёт первым: остальные скрипты читают из него
      сохранённые настройки, а defer сохраняет порядок выполнения. {% endcomment %}
+  {% comment %} Настройки авторизованного отдаются разметкой, а не отдельным
+     запросом: иначе страница успела бы отрисоваться с умолчаниями и дёрнулась бы,
+     когда ответ придёт. json_script экранирует данные — вставлять JSON в скрипт
+     руками нельзя, строка вида </script> внутри значения оборвала бы тег.
+     Для гостя блока нет, и стор по его отсутствию понимает, что работает
+     с localStorage. {% endcomment %}
+  {% if settings_on_server %}{{ reading_settings|json_script:"user-settings" }}{% endif %}
+
   <script src="{% static 'js/settings-store.js' %}" defer></script>
   <script src="{% static 'js/controls.js' %}" defer></script>
   {% block extra_js %}{% endblock %}

@@ -70,7 +70,6 @@ class ReaderView(View):
             "rows": [],
             "max_text_length": settings.MAX_TEXT_LENGTH,
             "translation_languages": settings.TRANSLATION_LANGUAGES,
-            "default_language": settings.DEFAULT_TRANSLATION_LANGUAGE,
             "active_nav": "reader",
         }
         return render(request, "reader/reader.html", context)
