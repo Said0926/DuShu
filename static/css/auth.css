@@ -154,6 +154,18 @@
   color: var(--color-placeholder);
 }
 
+/* Автозаполнение. Подставляя сохранённые логин и пароль, Chrome красит поле
+   своим фоном, и background: transparent он игнорирует — перебить это можно
+   только внутренней тенью во всю высоту поля. Заодно возвращаем цвет тексту
+   и курсору: их браузер тоже переопределяет. */
+.field input:-webkit-autofill,
+.field input:-webkit-autofill:hover,
+.field input:-webkit-autofill:focus {
+  box-shadow: 0 0 0 100px var(--color-bg) inset;
+  -webkit-text-fill-color: var(--color-text);
+  caret-color: var(--color-text);
+}
+
 /* Чекбокс («Запомнить меня») — строка, а не колонка, и высотой в минимальную
    интерактивную цель из §9. */
 .field--check {
