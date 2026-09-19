@@ -18,7 +18,9 @@ from django.views import View
 from apps.chinese.exceptions import TextTooLongError
 from apps.chinese.services import process_text
 from apps.chinese.types import ProcessedText
-from apps.core.limits import consume_audio_limit, user_audio_limit
+from apps.core.limits import consume_audio_limit, consume_text_limit, user_audio_limit
+from apps.translation.exceptions import TranslationError
+from apps.translation.services import has_cached_translations, translate_sentences
 from apps.tts.exceptions import TTSError
 from apps.tts.services import has_cached_audio
 
@@ -28,7 +30,44 @@ from .services import SpokenSentence, speak_text
 logger = logging.getLogger(__name__)
 
 
-def _speak_or_warn(processed: ProcessedText) -> tuple[list[SpokenSentence], str]:
+def _translate_or_warn(
+    processed: ProcessedText,
+    language: str,
+    *,
+    allowed: bool,
+) -> tuple[list[str], str]:
+    """Translate every sentence, degrading to no translation on failure.
+
+    Translation is a nicety on this page, not its point: what is being practised
+    is listening and repeating. So neither a dead translation service nor an
+    exhausted limit takes the page down — the audio still plays, the line under
+    the sentence is simply missing.
+
+    Args:
+        processed: The processed text.
+        language: Target language code.
+        allowed: Whether the hourly limit still permits paid translation.
+
+    Returns:
+        A pair of (translations, warning). The warning is empty on success, and
+        the translations list is empty when it is not.
+    """
+    if not allowed:
+        return [], "Лимит обработки текстов исчерпан, поэтому перевод не показан. Звук работает."
+
+    sentences = [sentence.text for sentence in processed.sentences]
+
+    try:
+        return translate_sentences(sentences, language), ""
+    except TranslationError as error:
+        logger.error("Translation failed for %s sentences: %s", len(sentences), error)
+        return [], "Перевод сейчас недоступен. Текст, пиньинь и озвучка работают."
+
+
+def _speak_or_warn(
+    processed: ProcessedText,
+    translations: list[str],
+) -> tuple[list[SpokenSentence], str]:
     """Speak a text, degrading to no audio on failure.
 
     The speech endpoint is unofficial and occasionally unavailable. When it is,
@@ -37,13 +76,14 @@ def _speak_or_warn(processed: ProcessedText) -> tuple[list[SpokenSentence], str]
 
     Args:
         processed: The processed text.
+        translations: One translation per sentence, possibly empty.
 
     Returns:
         A pair of (sentences, warning). The warning is empty on success, and the
         sentence list is empty when it is not.
     """
     try:
-        return speak_text(processed), ""
+        return speak_text(processed, translations), ""
     except TTSError as error:
         logger.error("Speech failed for %s sentences: %s", len(processed.sentences), error)
         return [], "Озвучка сейчас недоступна. Попробуйте обновить страницу через минуту."
@@ -77,6 +117,7 @@ class ShadowingView(View):
             return redirect("core:home")
 
         text: str = form.cleaned_data["text"]
+        language: str = form.cleaned_data["lang"]
 
         try:
             processed = process_text(text)
@@ -87,9 +128,12 @@ class ShadowingView(View):
 
         sentences = [sentence.text for sentence in processed.sentences]
 
-        # Лимит тратим только на платную работу. Текст, уже озвученный целиком,
-        # никуда не ходит, и перечитывать его можно сколько угодно — иначе
-        # библиотека была бы бесполезной.
+        # Лимиты тратим только на платную работу. Текст, уже озвученный и
+        # переведённый, никуда не ходит, и открывать его можно сколько угодно —
+        # иначе библиотека была бы бесполезной.
+        #
+        # Счётчика два, потому что это две разные работы у двух разных служб:
+        # синтез бесплатен и стережёт чужой эндпоинт, перевод стоит денег.
         if not has_cached_audio(sentences):
             limit = consume_audio_limit(request)
 
@@ -97,12 +141,26 @@ class ShadowingView(View):
                 context = {"limit": limit, "user_limit": user_audio_limit()}
                 return render(request, "core/rate_limited.html", context, status=429)
 
-        spoken, warning = _speak_or_warn(processed)
+        # А вот исчерпанный лимит перевода страницу не закрывает: слушать и
+        # повторять можно и без перевода, ради этого сюда и приходят.
+        may_translate = True
+
+        if not has_cached_translations(sentences, language):
+            text_limit = consume_text_limit(request)
+            may_translate = text_limit is None or not text_limit.exceeded
+
+        translations, translation_warning = _translate_or_warn(
+            processed, language, allowed=may_translate
+        )
+        spoken, speech_warning = _speak_or_warn(processed, translations)
 
         context: dict[str, Any] = {
             "sentences": spoken,
             "source_text": text,
-            "warning": warning,
+            "language": language,
+            # Предупреждений может быть два сразу: службы независимы, и упасть
+            # они могут порознь.
+            "warnings": [warning for warning in (speech_warning, translation_warning) if warning],
             "active_nav": "shadowing",
             "translation_languages": settings.TRANSLATION_LANGUAGES,
             # Заголовок и статус приходят скрытыми полями из библиотеки — так эта

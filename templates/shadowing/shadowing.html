@@ -29,6 +29,7 @@
         <form method="post" action="{% url 'reader:read' %}">
           {% csrf_token %}
           <input type="hidden" name="text" value="{{ source_text }}">
+          <input type="hidden" name="lang" value="{{ language }}">
           <input type="hidden" name="title" value="{{ text_title }}">
           <input type="hidden" name="saved" value="{% if already_saved %}1{% endif %}">
           <input type="hidden" name="saved_id" value="{{ saved_id|default_if_none:'' }}">
@@ -39,9 +40,9 @@
     {% endif %}
   </header>
 
-  {% if warning %}
+  {% for warning in warnings %}
     <p class="notice">{{ warning }}</p>
-  {% endif %}
+  {% endfor %}
 
   {% if not sentences %}
     <p class="page__intro">
@@ -94,10 +95,11 @@
          не надо догружать, и гонки загрузки с воспроизведением не существует. {% endcomment %}
       <div class="stage__sentences">
         {% for sentence in sentences %}
-          <p class="stage__sentence reader__sentence-line {% if forloop.first %}is-current{% endif %}"
-             data-index="{{ forloop.counter0 }}"
-             data-audio="{{ sentence.audio_url }}"
-             data-duration="{{ sentence.duration_ms }}">
+          <div class="stage__sentence {% if forloop.first %}is-current{% endif %}"
+               data-index="{{ forloop.counter0 }}"
+               data-audio="{{ sentence.audio_url }}"
+               data-duration="{{ sentence.duration_ms }}">
+            <p class="stage__line reader__sentence-line">
             {% for item in sentence.words %}
               {% if item.word.kind == "chinese" %}
                 {% comment %} span, а не button: подсказок здесь нет, и двадцать
@@ -109,7 +111,13 @@
                 <span class="latin">{{ item.word.text }}</span>
               {% endif %}
             {% endfor %}
-          </p>
+            </p>
+            {% comment %} Перевод прячется классом translation-off на контейнере —
+               тем же, что и в «Чтении», так что настройка одна на обе страницы. {% endcomment %}
+            {% if sentence.translation %}
+              <p class="reader__translation">{{ sentence.translation }}</p>
+            {% endif %}
+          </div>
         {% endfor %}
       </div>
 
@@ -189,6 +197,12 @@
                   aria-checked="{{ reading_settings.tones|yesno:'true,false' }}"
                   data-setting="tones">
             <span>Цвета тонов</span>
+            <span class="switch__track"><span class="switch__knob"></span></span>
+          </button>
+          <button class="switch" type="button" role="switch"
+                  aria-checked="{{ reading_settings.translation|yesno:'true,false' }}"
+                  data-setting="translation">
+            <span>Перевод предложений</span>
             <span class="switch__track"><span class="switch__knob"></span></span>
           </button>
         </div>
