@@ -92,10 +92,13 @@
                   <input type="hidden" name="saved_id" value="{{ row.text.pk }}">
                   <input type="hidden" name="status" value="{{ row.status }}">
                   <button class="btn btn--primary" type="submit">Читать</button>
+                  {% comment %} Та же форма, другой адрес: formaction на кнопке
+                     перебивает action формы, поэтому скрытые поля с текстом,
+                     заголовком и статусом не приходится дублировать. {% endcomment %}
+                  <button class="btn btn--ghost"
+                          type="submit"
+                          formaction="{% url 'shadowing:listen' %}">Shadowing</button>
                 </form>
-
-                {% comment %} Shadowing появится на следующем этапе. {% endcomment %}
-                <button class="btn btn--ghost" type="button" disabled>Shadowing</button>
 
                 {% comment %} Общий текст принадлежит всем сразу, поэтому менять
                    его через сайт нельзя — только читать и отмечать прогресс.

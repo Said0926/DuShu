@@ -27,7 +27,7 @@
       <a class="nav__link {% if active_nav == 'reader' %}is-active{% endif %}"
          href="{% url 'reader:read' %}">Чтение</a>
       <a class="nav__link {% if active_nav == 'shadowing' %}is-active{% endif %}"
-         href="{% url 'core:coming-soon' %}">Shadowing</a>
+         href="{% url 'shadowing:listen' %}">Shadowing</a>
       <a class="nav__link {% if active_nav == 'library' %}is-active{% endif %}"
          href="{% url 'library:list' %}">Библиотека</a>
     </nav>

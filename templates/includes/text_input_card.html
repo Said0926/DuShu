@@ -37,10 +37,21 @@
     </div>
 
     <div class="input-card__actions">
-      {% comment %} Shadowing появится на восьмом этапе; кнопку рисуем сразу,
-         чтобы раскладка не поехала, когда она заработает. {% endcomment %}
-      <button class="btn btn--ghost" type="button" disabled>Shadowing</button>
-      <button class="btn btn--primary" type="submit">{{ submit_label|default:"Читать →" }}</button>
+      {% comment %} Обе кнопки отправляют одну и ту же форму, различаются только
+         адресом: formaction на кнопке перебивает action формы. Поэтому переход
+         в любой из двух режимов не требует ни второй формы, ни строчки JS.
+         shadowing_primary меняет, какая кнопка главная — на странице Shadowing
+         главное действие «Слушать», а не «Читать». {% endcomment %}
+      {% if shadowing_primary %}
+        <button class="btn btn--ghost" type="submit"
+                formaction="{% url 'reader:read' %}">Чтение</button>
+        <button class="btn btn--primary" type="submit"
+                formaction="{% url 'shadowing:listen' %}">{{ submit_label|default:"Слушать →" }}</button>
+      {% else %}
+        <button class="btn btn--ghost" type="submit"
+                formaction="{% url 'shadowing:listen' %}">Shadowing</button>
+        <button class="btn btn--primary" type="submit">{{ submit_label|default:"Читать →" }}</button>
+      {% endif %}
     </div>
   </div>
 

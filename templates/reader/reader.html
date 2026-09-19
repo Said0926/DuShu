@@ -39,8 +39,13 @@
         {% else %}
           <a class="btn btn--ghost" href="{% url 'account_login' %}">Войдите, чтобы сохранить</a>
         {% endif %}
-        {% comment %} Shadowing заработает на следующем этапе. {% endcomment %}
-        <button class="btn btn--primary" type="button" disabled>Открыть в Shadowing</button>
+        {% comment %} Кнопка стоит в шапке, а форма с текстом — в сайдбаре;
+           атрибут form связывает их по id, поэтому дублировать скрытые поля
+           не нужно, а formaction уводит отправку в Shadowing. {% endcomment %}
+        <button class="btn btn--primary"
+                type="submit"
+                form="language-form"
+                formaction="{% url 'shadowing:listen' %}">Открыть в Shadowing</button>
       </div>
     {% endif %}
   </header>
@@ -127,6 +132,13 @@
         {# id нужен library.js: из этого поля он берёт текст для сохранения. #}
         <input type="hidden" name="text" id="source-text" value="{{ source_text }}">
         <input type="hidden" name="lang" id="language-value" value="{{ language }}">
+        {% comment %} Заголовок и статус едут вместе с текстом: иначе смена языка
+           теряла бы название сохранённого текста, а Shadowing открывался бы
+           безымянным. {% endcomment %}
+        <input type="hidden" name="title" value="{{ text_title }}">
+        <input type="hidden" name="saved" value="{% if already_saved %}1{% endif %}">
+        <input type="hidden" name="saved_id" value="{{ saved_id|default_if_none:'' }}">
+        <input type="hidden" name="status" value="{{ text_status }}">
         <div class="segmented" role="group" aria-label="Язык перевода">
           {% for code, label in translation_languages.items %}
             <button class="segmented__item {% if code == language %}is-active{% endif %}"
