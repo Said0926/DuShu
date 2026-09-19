@@ -306,6 +306,179 @@ ul {
   background: var(--color-on-accent);
 }
 
+/* ---------- обвязка страницы ----------
+   Заголовок, мета-строка и кнопки над содержимым одинаковы у «Чтения»
+   и «Библиотеки», поэтому лежат здесь, а не в стилях одной из них. */
+
+/* 960 полотно + 32 отступ + 320 сайдбар = 1312. Ограничение по ширине
+   держит страницу собранной на широком мониторе. */
+.page {
+  max-width: 1312px;
+  margin: 0 auto;
+  padding: 28px var(--page-gutter) var(--space-10);
+}
+
+/* Пустое состояние — одна колонка шириной с полотно чтения, поэтому заголовок,
+   вводный текст и карточка выровнены по одному краю. */
+/* Узкая колонка: страница без сайдбара читается лучше, когда не растянута
+   на всю ширину «Чтения» с его полотном и панелью настроек. */
+.page--empty,
+.page--narrow {
+  max-width: calc(960px + var(--page-gutter) * 2);
+}
+
+.page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-6);
+}
+
+.page__title {
+  font-family: var(--font-display);
+  font-size: var(--text-h1);
+  font-weight: 600;
+}
+
+/* Заголовок сохранённого текста — это китайский текст, а не название
+   страницы, поэтому и шрифт другой. */
+.page__title--text {
+  font-family: var(--font-cn);
+  font-size: var(--text-h3);
+  line-height: 1.5;
+}
+
+.page__meta {
+  font-size: var(--text-caption);
+  color: var(--color-text-3);
+}
+
+.page__actions {
+  display: flex;
+  gap: var(--space-3);
+  /* Без переноса две кнопки не помещаются на узком экране и распирают
+     страницу шире вьюпорта. */
+  flex-wrap: wrap;
+}
+
+/* Кнопки будущих этапов видно, но нажать нельзя. */
+.page__actions .btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.page__intro {
+  max-width: 660px;
+  margin-bottom: var(--space-6);
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--color-text-3);
+}
+
+/* ---------- поля ввода ----------
+   Нужны формам аккаунта и переименованию в библиотеке, поэтому живут здесь,
+   рядом с кнопками и переключателями, а не в стилях одной страницы. */
+
+.field-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+}
+
+/* Рамка у самого input убрана, поэтому фокус подсвечиваем на всём поле —
+   иначе при табуляции было бы не видно, куда попал курсор. */
+.field:focus-within {
+  border-color: var(--color-line-pop);
+}
+
+.field__label {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: var(--text-label);
+  color: var(--color-text-3);
+}
+
+.field input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: var(--font-ui);
+  font-size: var(--text-body);
+  color: var(--color-text);
+}
+
+.field input::placeholder {
+  color: var(--color-placeholder);
+}
+
+/* Автозаполнение. Подставляя сохранённые логин и пароль, Chrome красит поле
+   своим фоном, и background: transparent он игнорирует — перебить это можно
+   только внутренней тенью во всю высоту поля. Заодно возвращаем цвет тексту
+   и курсору: их браузер тоже переопределяет. */
+.field input:-webkit-autofill,
+.field input:-webkit-autofill:hover,
+.field input:-webkit-autofill:focus {
+  box-shadow: 0 0 0 100px var(--color-bg) inset;
+  -webkit-text-fill-color: var(--color-text);
+  caret-color: var(--color-text);
+}
+
+/* Чекбокс («Запомнить меня») — строка, а не колонка, и высотой в минимальную
+   интерактивную цель из §9. */
+.field--check {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--control-height);
+  padding: 0 var(--space-1);
+  background: transparent;
+  border-color: transparent;
+}
+
+.field--check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-accent);
+}
+
+.field__check-label {
+  font-size: var(--text-sm);
+  color: var(--color-text-2);
+}
+
+.field__help {
+  font-size: var(--text-caption);
+  line-height: 1.5;
+  color: var(--color-text-4);
+}
+
+/* Внутри подсказки бывает ссылка — «Забыли пароль?» под полем пароля.
+   Без этого правила она неотличима от обычного текста: у <a> в base.css
+   цвет унаследован и подчёркивание снято. */
+.field__help a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.field__error {
+  font-size: var(--text-caption);
+  color: var(--color-accent);
+}
+
 /* ---------- поверхности ---------- */
 
 .panel {
@@ -479,6 +652,12 @@ ul {
 
 .stub__text {
   color: var(--color-text-3);
+}
+
+/* Кнопки под текстом заглушки: в строку, а не в колонку от .stub. */
+.stub__actions {
+  display: flex;
+  gap: var(--space-3);
 }
 
 /* ---------- адаптив ---------- */

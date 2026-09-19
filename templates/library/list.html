@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load static plural %}
+
+{% block title %}Библиотека — Dúshū{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/library.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page page--narrow">
+
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">Библиотека</h1>
+      {% if texts %}
+        <p class="page__meta">
+          {{ texts|length }} {{ texts|length|plural_ru:"текст,текста,текстов" }}
+        </p>
+      {% endif %}
+    </div>
+  </header>
+
+  {% if not texts %}
+    <p class="page__intro">
+      Здесь будут тексты, которые вы сохранили. Откройте любой текст в «Чтении»
+      и нажмите «Сохранить в библиотеку» — переводы к нему уже в кэше,
+      поэтому открывать его снова ничего не стоит.
+    </p>
+    <div class="library__empty-actions">
+      <a class="btn btn--primary" href="{% url 'reader:read' %}">Открыть «Чтение»</a>
+    </div>
+  {% else %}
+    <ul class="library">
+      {% for text in texts %}
+        <li class="library__item panel">
+          <div class="library__head">
+            <h2 class="library__title">{{ text.title }}</h2>
+            <p class="library__meta">Сохранён {{ text.created_at|date:"j E Y" }}</p>
+          </div>
+
+          <div class="library__actions">
+            {% comment %} Открываем обычной формой: «Чтение» получает текст тем же
+               способом, что и с главной, и ничего не знает про библиотеку.
+               Поэтому между двумя фичами нет зависимости. {% endcomment %}
+            <form method="post" action="{% url 'reader:read' %}">
+              {% csrf_token %}
+              <input type="hidden" name="text" value="{{ text.content }}">
+              <input type="hidden" name="lang" value="{{ reading_settings.language }}">
+              <input type="hidden" name="title" value="{{ text.title }}">
+              <input type="hidden" name="saved" value="1">
+              <button class="btn btn--primary" type="submit">Читать</button>
+            </form>
+
+            {% comment %} Shadowing появится на этапе 8. {% endcomment %}
+            <button class="btn btn--ghost" type="button" disabled>Shadowing</button>
+
+            {% comment %} details раскрывается силами браузера: форма
+               переименования и подтверждение удаления работают и без JS,
+               без диалогов и без отдельных страниц. {% endcomment %}
+            <details class="library__more">
+              <summary class="btn btn--ghost">Переименовать</summary>
+              <form class="library__rename"
+                    method="post"
+                    action="{% url 'library:rename' text.pk %}">
+                {% csrf_token %}
+                <label class="field">
+                  <span class="field__label">Название</span>
+                  <input type="text" name="title" value="{{ text.title }}" maxlength="41">
+                </label>
+                <button class="btn btn--primary" type="submit">Сохранить</button>
+              </form>
+            </details>
+
+            <a class="btn btn--ghost" href="{% url 'library:delete' text.pk %}">Удалить</a>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>
+{% endblock %}

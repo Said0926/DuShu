@@ -9,6 +9,11 @@ from apps.accounts.models import User
 TEXT = {"text": "你好。", "lang": "ru"}
 
 
+def _new_text(number: int) -> dict[str, str]:
+    """A text that has to be translated, and therefore spends the limit."""
+    return {"text": f"这是第{number}句话。", "lang": "ru"}
+
+
 @pytest.mark.django_db
 def test_header_shows_the_guest_limit(client: Client) -> None:
     html = client.get(reverse("core:home")).content.decode()
@@ -51,8 +56,8 @@ def test_reading_the_counter_does_not_spend_it(client: Client) -> None:
 
 @pytest.mark.django_db
 def test_an_exhausted_limit_is_marked_in_the_header(client: Client) -> None:
-    for _ in range(5):
-        client.post(reverse("reader:read"), TEXT)
+    for number in range(5):
+        client.post(reverse("reader:read"), _new_text(number))
 
     html = client.get(reverse("core:home")).content.decode()
 

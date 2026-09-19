@@ -33,6 +33,15 @@ class LimitState:
     seconds_left: int
 
     @property
+    def exceeded(self) -> bool:
+        """Whether this request went past the limit.
+
+        Strictly greater, not equal: the request that brings the count up to the
+        limit is the last allowed one, not the first refused one.
+        """
+        return self.used > self.limit
+
+    @property
     def remaining(self) -> int:
         """Requests still allowed. Never negative: below zero says nothing extra."""
         return max(self.limit - self.used, 0)
@@ -64,6 +73,33 @@ def lookup_rate(group: str, request: HttpRequest) -> str:
     if request.user.is_authenticated:
         return settings.RATELIMIT_LOOKUP_USER
     return settings.RATELIMIT_LOOKUP_GUEST
+
+
+def consume_text_limit(request: HttpRequest) -> LimitState | None:
+    """Count one paid text processing against the limit.
+
+    Called from the view rather than from a decorator, because only the view
+    knows whether this request will actually cost anything: a text whose
+    translations are already cached is free to re-read, and counting it would
+    make the library useless — thirty reopenings an hour and nothing more.
+
+    The trade-off is that a free re-read is not counted at all, so repeatedly
+    reopening a cached text costs CPU without limit. That is deliberate: this
+    limit guards the translation budget, and a real deployment bounds raw
+    request rate at the proxy.
+
+    Args:
+        request: The current request.
+
+    Returns:
+        The state after counting, or ``None`` if rate limiting is switched off.
+    """
+    usage = get_usage(request, group=TEXT_GROUP, key=RATE_KEY, rate=text_rate, increment=True)
+
+    if usage is None:
+        return None
+
+    return LimitState(limit=usage["limit"], used=usage["count"], seconds_left=usage["time_left"])
 
 
 def text_limit_state(request: HttpRequest) -> LimitState | None:

@@ -12,16 +12,29 @@
 
   <header class="page__header">
     <div>
-      <h1 class="page__title">Чтение</h1>
+      {% comment %} Заголовок приходит скрытым полем, когда текст открыли
+         из библиотеки; иначе это просто название страницы. {% endcomment %}
+      <h1 class="page__title{% if text_title %} page__title--text{% endif %}">
+        {{ text_title|default:"Чтение" }}
+      </h1>
       {% if rows %}
         <p class="page__meta">{{ rows|length }} {{ rows|length|plural_ru:"предложение,предложения,предложений" }}</p>
       {% endif %}
     </div>
     {% if rows %}
       <div class="page__actions">
-        {% comment %} Обе кнопки появятся по-настоящему на этапах 7 и 8. Рисуем их сразу,
-           чтобы шапка не поехала, когда они заработают. {% endcomment %}
-        <button class="btn btn--ghost" type="button" disabled>Сохранить в библиотеку</button>
+        {% if user.is_authenticated %}
+          <button class="btn btn--ghost"
+                  type="button"
+                  id="save-text"
+                  data-url="{% url 'library:save' %}"
+                  {% if already_saved %}disabled{% endif %}>
+            {% if already_saved %}В библиотеке{% else %}Сохранить в библиотеку{% endif %}
+          </button>
+        {% else %}
+          <a class="btn btn--ghost" href="{% url 'account_login' %}">Войдите, чтобы сохранить</a>
+        {% endif %}
+        {% comment %} Shadowing заработает на этапе 8. {% endcomment %}
         <button class="btn btn--primary" type="button" disabled>Открыть в Shadowing</button>
       </div>
     {% endif %}
@@ -106,7 +119,8 @@
          меняется и перевод предложений, и источник подсказок. {% endcomment %}
       <form method="post" action="{% url 'reader:read' %}" id="language-form">
         {% csrf_token %}
-        <input type="hidden" name="text" value="{{ source_text }}">
+        {# id нужен library.js: из этого поля он берёт текст для сохранения. #}
+        <input type="hidden" name="text" id="source-text" value="{{ source_text }}">
         <input type="hidden" name="lang" id="language-value" value="{{ language }}">
         <div class="segmented" role="group" aria-label="Язык перевода">
           {% for code, label in translation_languages.items %}
@@ -166,5 +180,6 @@
     <script src="{% static 'js/home.js' %}" defer></script>
   {% endif %}
   <script src="{% static 'js/tooltip.js' %}" defer></script>
+  {% if user.is_authenticated %}<script src="{% static 'js/library.js' %}" defer></script>{% endif %}
   <script src="{% static 'js/reader.js' %}" defer></script>
 {% endblock %}

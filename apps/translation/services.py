@@ -123,3 +123,33 @@ def translate_sentences(sentences: list[str], target_lang: str) -> list[str]:
         logger.info("Translated %s new sentences into %s", len(fresh_rows), target_lang)
 
     return [by_hash[hashes[sentence]] for sentence in sentences]
+
+
+def has_cached_translations(sentences: list[str], target_lang: str) -> bool:
+    """Whether every sentence is already translated into this language.
+
+    Lets a caller tell a free re-read from one that will cost money. Reopening a
+    saved text is answered entirely from the cache, so it should not spend the
+    hourly limit — that limit exists to bound what goes out to a paid provider,
+    not to count page views.
+
+    Args:
+        sentences: Sentences in reading order.
+        target_lang: Language code.
+
+    Returns:
+        ``True`` when nothing would have to be sent to the provider.
+    """
+    if not sentences:
+        return True
+
+    hashes = {sentence_hash(sentence) for sentence in sentences}
+
+    cached = set(
+        SentenceTranslation.objects.filter(
+            source_hash__in=hashes,
+            target_language=target_lang,
+        ).values_list("source_hash", flat=True)
+    )
+
+    return hashes <= cached
