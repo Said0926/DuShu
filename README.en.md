@@ -201,7 +201,7 @@ One line in `config/settings/base.py`:
 TRANSLATION_LANGUAGES = {
     "ru": "Русский",
     "en": "English",
-    "de": "Deutsch",   # that is all
+    "de": "Deutsch",  # that is all
 }
 ```
 
@@ -215,8 +215,7 @@ Say Azure instead of `edge-tts`:
 ```python
 # apps/tts/providers/azure.py
 class AzureTTSProvider(TTSProvider):
-    def synthesize(self, sentences: list[str], voice: str) -> list[Synthesis]:
-        ...
+    def synthesize(self, sentences: list[str], voice: str) -> list[Synthesis]: ...
 ```
 
 ```bash

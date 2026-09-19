@@ -201,7 +201,7 @@ docker compose exec web python manage.py import_bkrs data/dabkrs.gz
 TRANSLATION_LANGUAGES = {
     "ru": "Русский",
     "en": "English",
-    "de": "Deutsch",   # вот и всё
+    "de": "Deutsch",  # вот и всё
 }
 ```
 
@@ -215,8 +215,7 @@ TRANSLATION_LANGUAGES = {
 ```python
 # apps/tts/providers/azure.py
 class AzureTTSProvider(TTSProvider):
-    def synthesize(self, sentences: list[str], voice: str) -> list[Synthesis]:
-        ...
+    def synthesize(self, sentences: list[str], voice: str) -> list[Synthesis]: ...
 ```
 
 ```bash
