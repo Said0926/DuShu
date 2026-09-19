@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Удалить подборку — Dúshū{% endblock %}
+
+{% block content %}
+<div class="stub">
+  <p class="stub__eyebrow">Удаление подборки</p>
+  <h1 class="stub__title">{{ collection.title }}</h1>
+  <p class="stub__text">
+    Тексты из неё <strong>не пропадут</strong> — они окажутся в «Без подборки»,
+    откуда их можно будет разложить заново.
+  </p>
+
+  <form method="post" action="{% url 'library:collection-delete' collection.pk %}">
+    {% csrf_token %}
+    <div class="stub__actions">
+      <a class="btn btn--ghost" href="{% url 'library:list' %}">Отмена</a>
+      <button class="btn btn--primary" type="submit">Удалить подборку</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

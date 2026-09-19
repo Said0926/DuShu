@@ -89,6 +89,10 @@ TEMPLATES = [
                 "apps.accounts.context_processors.reading_settings",
                 # Остаток лимита показывает шапка, то есть нужен на каждой странице.
                 "apps.core.context_processors.quota",
+                # Подписи статусов чтения нужны и библиотеке, и «Чтению».
+                # Через настройки, а не импортом: так reader не зависит
+                # от library, как и требует карта apps.
+                "apps.library.context_processors.reading_statuses",
             ],
         },
     },

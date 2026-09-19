@@ -52,3 +52,34 @@ if (saveButton && sourceInput) {
     }
   });
 }
+
+/*
+ * Переключатель статуса текста. Работает и в библиотеке, и (позже) в шапке
+ * «Чтения»: контрол один и тот же, поэтому обработчик один и висит на документе.
+ *
+ * Сам segmented уже переключил классы и ARIA силами controls.js — здесь
+ * остаётся только сохранить выбор.
+ */
+document.addEventListener("segmented:change", async (event) => {
+  const group = event.target.closest("[data-status-url]");
+  if (!group) {
+    return;
+  }
+
+  try {
+    const response = await fetch(group.dataset.statusUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": window.DushuCsrf.getCsrfToken(),
+      },
+      body: JSON.stringify({ status: event.detail.value }),
+    });
+
+    if (!response.ok) {
+      console.warn("Статус не сохранён, ответ:", response.status);
+    }
+  } catch (error) {
+    console.warn("Статус не сохранён:", error);
+  }
+});

@@ -137,6 +137,8 @@ class ReaderView(View):
             # ничего не зная про app library: фичи не зависят друг от друга.
             "text_title": form.cleaned_data["title"],
             "already_saved": form.cleaned_data["saved"],
+            "saved_id": form.cleaned_data["saved_id"],
+            "text_status": form.cleaned_data["status"],
         }
         return render(request, "reader/reader.html", context)
 
