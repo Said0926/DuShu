@@ -13,7 +13,6 @@ class HomeView(TemplateView):
         context = super().get_context_data(**kwargs)
         context["max_text_length"] = settings.MAX_TEXT_LENGTH
         context["translation_languages"] = settings.TRANSLATION_LANGUAGES
-        context["default_language"] = settings.DEFAULT_TRANSLATION_LANGUAGE
         return context
 
 

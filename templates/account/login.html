@@ -1,0 +1,32 @@
+{% extends "account/base_entrance.html" %}
+
+{% block head_title %}Вход{% endblock %}
+{% block auth_title %}Войти{% endblock %}
+
+{% block auth_lead %}
+  <p class="auth__lead">
+    Нет аккаунта? <a class="auth__link" href="{{ signup_url }}">Зарегистрируйтесь</a> —
+    настройки чтения и лимит переводов будут сохраняться за вами, а не в браузере.
+  </p>
+{% endblock %}
+
+{% block auth_body %}
+  <form class="auth__form" method="post" action="{% url 'account_login' %}">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="auth__errors">
+        {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+      </div>
+    {% endif %}
+
+    {% for field in form %}{% include "includes/form_field.html" %}{% endfor %}
+
+    {# Скрытое поле «куда вернуться после входа» — его собирает сам allauth. #}
+    {{ redirect_field }}
+
+    <button class="btn btn--primary auth__submit" type="submit">Войти</button>
+  </form>
+
+  {% include "includes/social_login.html" with process="login" label="Войти" %}
+{% endblock %}

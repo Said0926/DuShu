@@ -40,9 +40,15 @@
   {% else %}
   <div class="page__body">
 
-    {% comment %} Класс reader несёт настройки отображения: JS переключает на нём
-       pinyin-off / translation-off / tones-off / hints-off. {% endcomment %}
-    <article class="reader canvas" id="reader" data-lang="{{ language }}">
+    {% comment %} Класс reader несёт настройки отображения: pinyin-off /
+       translation-off / tones-off / hints-off. Начальное состояние ставит сервер,
+       дальше их переключает JS. data-size появляется только если размер выбирали:
+       без атрибута на узком экране действует уменьшенный кегль из медиазапроса.
+    {% endcomment %}
+    <article class="reader canvas {{ reading_off_classes }}"
+             id="reader"
+             data-lang="{{ language }}"
+             {% if reading_settings.fontSize %}data-size="{{ reading_settings.fontSize }}"{% endif %}>
       {% for sentence, translation in rows %}
         <section class="reader__sentence">
           <p class="reader__sentence-line">
@@ -68,19 +74,27 @@
     <aside class="settings panel" id="settings">
       <p class="settings__label">Настройки</p>
 
-      <button class="switch" type="button" role="switch" aria-checked="true" data-setting="pinyin">
+      <button class="switch" type="button" role="switch"
+              aria-checked="{{ reading_settings.pinyin|yesno:'true,false' }}"
+              data-setting="pinyin">
         <span>Пиньинь</span>
         <span class="switch__track"><span class="switch__knob"></span></span>
       </button>
-      <button class="switch" type="button" role="switch" aria-checked="true" data-setting="translation">
+      <button class="switch" type="button" role="switch"
+              aria-checked="{{ reading_settings.translation|yesno:'true,false' }}"
+              data-setting="translation">
         <span>Перевод предложений</span>
         <span class="switch__track"><span class="switch__knob"></span></span>
       </button>
-      <button class="switch" type="button" role="switch" aria-checked="true" data-setting="tones">
+      <button class="switch" type="button" role="switch"
+              aria-checked="{{ reading_settings.tones|yesno:'true,false' }}"
+              data-setting="tones">
         <span>Цвета тонов</span>
         <span class="switch__track"><span class="switch__knob"></span></span>
       </button>
-      <button class="switch" type="button" role="switch" aria-checked="true" data-setting="hints">
+      <button class="switch" type="button" role="switch"
+              aria-checked="{{ reading_settings.hints|yesno:'true,false' }}"
+              data-setting="hints">
         <span>Подсказки по словам</span>
         <span class="switch__track"><span class="switch__knob"></span></span>
       </button>
@@ -108,11 +122,14 @@
       {% comment %} Кегль самих кнопок задаётся классами: по DESIGN.md §6 они показывают
          размер наглядно — 13 / 16 / 20 пикселей. {% endcomment %}
       <div class="segmented" role="group" aria-label="Размер шрифта" id="font-size">
-        <button class="segmented__item size-sm" type="button" aria-pressed="false"
+        <button class="segmented__item size-sm {% if reading_font_size == 'sm' %}is-active{% endif %}"
+                type="button" aria-pressed="{% if reading_font_size == 'sm' %}true{% else %}false{% endif %}"
                 aria-label="Мелкий шрифт" data-value="sm">Аа</button>
-        <button class="segmented__item size-md is-active" type="button" aria-pressed="true"
+        <button class="segmented__item size-md {% if reading_font_size == 'md' %}is-active{% endif %}"
+                type="button" aria-pressed="{% if reading_font_size == 'md' %}true{% else %}false{% endif %}"
                 aria-label="Средний шрифт" data-value="md">Аа</button>
-        <button class="segmented__item size-lg" type="button" aria-pressed="false"
+        <button class="segmented__item size-lg {% if reading_font_size == 'lg' %}is-active{% endif %}"
+                type="button" aria-pressed="{% if reading_font_size == 'lg' %}true{% else %}false{% endif %}"
                 aria-label="Крупный шрифт" data-value="lg">Аа</button>
       </div>
 
@@ -128,7 +145,13 @@
       </ul>
 
       <p class="settings__note">
-        Настройки сохраняются в браузере. После входа они будут храниться в профиле.
+        {% if settings_on_server %}
+          Настройки сохраняются в профиле и работают на всех устройствах.
+        {% else %}
+          Настройки сохраняются в этом браузере.
+          <a class="settings__link" href="{% url 'account_login' %}">Войдите</a>,
+          чтобы они были с вами везде.
+        {% endif %}
       </p>
     </aside>
 

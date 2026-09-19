@@ -1,0 +1,32 @@
+{% load socialaccount %}
+{% comment %}
+Кнопки входа через сторонних провайдеров.
+
+Параметры:
+    process — "login" на страницах входа и регистрации, "connect" в профиле;
+    label — надпись на кнопке;
+    no_divider — убрать разделитель «или» (в профиле это не альтернатива
+        соседним кнопкам, а отдельное действие).
+
+get_providers отдаёт только настроенных провайдеров. Ключи Google приходят из
+.env, и если их нет, секция APP в настройках не создаётся, список оказывается
+пустым и блок не рисуется целиком — вместо кнопки, ведущей на ошибку.
+
+Форма, а не ссылка: на GET allauth показывает промежуточную страницу
+«вы собираетесь войти через Google?», а на POST сразу уводит к провайдеру.
+{% endcomment %}
+{% get_providers as socialaccount_providers %}
+
+{% if socialaccount_providers %}
+  {% if not no_divider %}<div class="auth__divider"><span>или</span></div>{% endif %}
+
+  {% for provider in socialaccount_providers %}
+    {% provider_login_url provider process=process as provider_url %}
+    <form class="auth__social" method="post" action="{{ provider_url }}">
+      {% csrf_token %}
+      <button class="btn btn--ghost auth__submit" type="submit">
+        {{ label|default:"Продолжить" }} через {{ provider.name }}
+      </button>
+    </form>
+  {% endfor %}
+{% endif %}

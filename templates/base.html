@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="{% static 'css/text.css' %}">
   {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body{% if settings_on_server %} data-settings-url="{% url 'accounts:settings' %}"{% endif %}>
   <header class="site-header">
     <a class="logo" href="{% url 'core:home' %}">
       <span class="logo__tile" aria-hidden="true">读</span>
@@ -33,9 +33,18 @@
     </nav>
 
     <div class="site-header__side">
-      {# Реальные цифры лимита появятся на этапе 6 вместе с rate limiting. #}
-      <span class="quota">Лимит не подключён</span>
-      <a class="avatar" href="{% url 'core:coming-soon' %}" aria-label="Профиль">人</a>
+      {% if quota %}
+        <span class="quota {% if not quota.remaining %}quota--empty{% endif %}">
+          Осталось {{ quota.remaining }} из {{ quota.limit }}
+        </span>
+      {% endif %}
+      {% if user.is_authenticated %}
+        <a class="avatar avatar--initial"
+           href="{% url 'accounts:profile' %}"
+           aria-label="Профиль">{{ user.email|first|upper }}</a>
+      {% else %}
+        <a class="btn btn--ghost" href="{% url 'account_login' %}">Войти</a>
+      {% endif %}
     </div>
   </header>
 
@@ -62,6 +71,14 @@
      поэтому DOM уже доступен и не нужен обработчик DOMContentLoaded. {% endcomment %}
   {% comment %} settings-store.js идёт первым: остальные скрипты читают из него
      сохранённые настройки, а defer сохраняет порядок выполнения. {% endcomment %}
+  {% comment %} Настройки авторизованного отдаются разметкой, а не отдельным
+     запросом: иначе страница успела бы отрисоваться с умолчаниями и дёрнулась бы,
+     когда ответ придёт. json_script экранирует данные — вставлять JSON в скрипт
+     руками нельзя, строка вида </script> внутри значения оборвала бы тег.
+     Для гостя блока нет, и стор по его отсутствию понимает, что работает
+     с localStorage. {% endcomment %}
+  {% if settings_on_server %}{{ reading_settings|json_script:"user-settings" }}{% endif %}
+
   <script src="{% static 'js/settings-store.js' %}" defer></script>
   <script src="{% static 'js/controls.js' %}" defer></script>
   {% block extra_js %}{% endblock %}

@@ -1,16 +1,72 @@
 /*
- * settings-store.js — настройки пользователя в браузере.
+ * settings-store.js — настройки пользователя.
  *
- * Гость должен иметь возможность пользоваться сайтом без регистрации, поэтому
- * его настройки живут в localStorage. На шестом этапе появится вход, и для
- * авторизованных те же самые значения будут приходить с сервера — интерфейс
- * этого модуля тогда не изменится, поменяется только источник данных.
+ * У модуля два режима, и снаружи они неразличимы: и reader.js, и home.js
+ * просто зовут readSetting и writeSetting, не зная, куда всё уходит.
  *
- * Всё хранится одним объектом под одним ключом, а не россыпью ключей:
- * добавить новую настройку тогда можно, ничего не переписывая.
+ *   гость         — localStorage этого браузера;
+ *   авторизован   — база на сервере.
+ *
+ * Режим определяется по разметке: сервер отдаёт настройки авторизованного
+ * блоком <script id="user-settings"> и кладёт адрес сохранения в data-атрибут
+ * <body>. Нет блока — значит гость. Отдельного запроса «а кто я?» не нужно.
+ *
+ * Всё хранится одним объектом, а не россыпью ключей: добавить новую настройку
+ * можно, ничего здесь не переписывая.
  */
 
 const STORAGE_KEY = "dushu.settings";
+
+const serverElement = document.getElementById("user-settings");
+const settingsUrl = document.body.dataset.settingsUrl || "";
+
+// Копия серверных настроек в памяти. Её же правит writeSetting, чтобы страница
+// сразу видела новое значение, не дожидаясь ответа сервера.
+const serverSettings = serverElement ? JSON.parse(serverElement.textContent) : null;
+const isAuthenticated = serverSettings !== null && settingsUrl !== "";
+
+/**
+ * Достаёт CSRF-токен из cookie.
+ *
+ * Обычные формы получают токен тегом {% csrf_token %}, а fetch приходится
+ * читать cookie самому — это задокументированный способ из документации Django.
+ *
+ * @returns {string} токен, либо пустая строка, если cookie ещё нет
+ */
+function getCsrfToken() {
+  const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]*)/);
+  return match ? decodeURIComponent(match[1]) : "";
+}
+
+/**
+ * Отправляет одну настройку на сервер.
+ *
+ * Ответа никто не ждёт: значение уже применено к странице и к копии в памяти,
+ * поэтому интерфейс не должен подвисать на время запроса. Если сохранить не
+ * удалось, пользователь увидит изменение, но после перезагрузки его не станет —
+ * поэтому пишем предупреждение в консоль, а не молчим.
+ *
+ * @param {string} name — имя настройки
+ * @param {*} value — значение
+ */
+async function saveToServer(name, value) {
+  try {
+    const response = await fetch(settingsUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCsrfToken(),
+      },
+      body: JSON.stringify({ name, value }),
+    });
+
+    if (!response.ok) {
+      console.warn("Настройку не удалось сохранить, статус:", response.status);
+    }
+  } catch (error) {
+    console.warn("Настройку не удалось сохранить:", error);
+  }
+}
 
 /**
  * Читает все настройки.
@@ -18,6 +74,10 @@ const STORAGE_KEY = "dushu.settings";
  * @returns {Object} сохранённые значения, либо пустой объект
  */
 function readSettings() {
+  if (isAuthenticated) {
+    return { ...serverSettings };
+  }
+
   try {
     // localStorage может быть недоступен: приватный режим в Safari, запрет
     // сторонних данных, переполнение. Настройки — не та вещь, из-за которой
@@ -37,6 +97,12 @@ function readSettings() {
  * @param {*} value — значение
  */
 function writeSetting(name, value) {
+  if (isAuthenticated) {
+    serverSettings[name] = value;
+    saveToServer(name, value);
+    return;
+  }
+
   try {
     const settings = readSettings();
     settings[name] = value;

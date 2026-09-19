@@ -3,8 +3,14 @@ Django>=5.2,<6.0
 django-environ>=0.11          # чтение настроек из .env
 psycopg[binary]>=3.2          # драйвер PostgreSQL, без компиляции
 
-# --- auth (подключается на этапе 6) ---
+# --- auth ---
 django-allauth>=65.0
+# Нужен только входу через Google: allauth проверяет подпись id_token и тянет
+# jwt с cryptography отложенным импортом. Без них проект стартует нормально
+# и падает лишь при первом клике по кнопке Google. Extras
+# django-allauth[socialaccount] поставил бы ещё requests-oauthlib (провайдерам
+# OAuth1) и python3-openid (провайдеру openid) — нам не нужно ни то, ни другое.
+PyJWT[crypto]>=2.9
 
 # --- rate limiting (подключается на этапе 6) ---
 django-ratelimit>=4.1

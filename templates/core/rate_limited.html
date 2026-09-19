@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Лимит исчерпан — Dúshū{% endblock %}
+
+{% block content %}
+<div class="stub">
+  <p class="stub__eyebrow">Лимит исчерпан</p>
+  <h1 class="stub__title">Пока достаточно</h1>
+
+  {% if user.is_authenticated %}
+    <p class="stub__text">
+      Вы обработали {{ limit.limit }} текстов за час — это весь лимит.
+      Следующий можно будет открыть примерно через {{ limit.minutes_left }} мин.
+    </p>
+    <a class="btn btn--ghost" href="{% url 'core:home' %}">На главную</a>
+  {% else %}
+    <p class="stub__text">
+      Без регистрации доступно {{ limit.limit }} текстов в час, и они закончились.
+      Лимит обновится примерно через {{ limit.minutes_left }} мин — или
+      зарегистрируйтесь, и их станет {{ user_limit }}.
+    </p>
+    <a class="btn btn--primary" href="{% url 'account_signup' %}">Зарегистрироваться</a>
+  {% endif %}
+</div>
+{% endblock %}

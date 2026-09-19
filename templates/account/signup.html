@@ -1,0 +1,29 @@
+{% extends "account/base_entrance.html" %}
+
+{% block head_title %}Регистрация{% endblock %}
+{% block auth_title %}Регистрация{% endblock %}
+
+{% block auth_lead %}
+  <p class="auth__lead">
+    Уже есть аккаунт? <a class="auth__link" href="{{ login_url }}">Войдите</a>.
+  </p>
+{% endblock %}
+
+{% block auth_body %}
+  <form class="auth__form" method="post" action="{% url 'account_signup' %}">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="auth__errors">
+        {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+      </div>
+    {% endif %}
+
+    {% for field in form %}{% include "includes/form_field.html" %}{% endfor %}
+    {{ redirect_field }}
+
+    <button class="btn btn--primary auth__submit" type="submit">Создать аккаунт</button>
+  </form>
+
+  {% include "includes/social_login.html" with process="login" label="Зарегистрироваться" %}
+{% endblock %}

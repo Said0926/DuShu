@@ -12,11 +12,22 @@ from django.conf import settings
 from django.contrib import messages
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
+from django.utils.decorators import method_decorator
 from django.views import View
+from django_ratelimit.decorators import ratelimit
 
 from apps.chinese.exceptions import TextTooLongError
 from apps.chinese.services import process_text
 from apps.chinese.types import ProcessedText
+from apps.core.limits import (
+    LOOKUP_GROUP,
+    RATE_KEY,
+    TEXT_GROUP,
+    lookup_rate,
+    text_limit_state,
+    text_rate,
+    user_text_limit,
+)
 from apps.dictionary.exceptions import UnknownLanguageError
 from apps.dictionary.services import lookup_with_fallback
 from apps.translation.exceptions import TranslationError
@@ -56,6 +67,14 @@ def _translate_or_warn(processed: ProcessedText, language: str) -> tuple[list[st
         return [], "Перевод сейчас недоступен. Текст, пиньинь и подсказки работают."
 
 
+# Лимит навешен на сам метод post, поэтому GET на страницу его не расходует.
+# method при этом не ограничиваем намеренно: этот параметр попадает в ключ
+# счётчика, и с method="POST" шапка не смогла бы прочитать тот же счётчик
+# с обычной GET-страницы — показывала бы пустоту вместо остатка.
+@method_decorator(
+    ratelimit(group=TEXT_GROUP, key=RATE_KEY, rate=text_rate, block=False),
+    name="post",
+)
 class ReaderView(View):
     """Renders a submitted text for reading."""
 
@@ -70,12 +89,21 @@ class ReaderView(View):
             "rows": [],
             "max_text_length": settings.MAX_TEXT_LENGTH,
             "translation_languages": settings.TRANSLATION_LANGUAGES,
-            "default_language": settings.DEFAULT_TRANSLATION_LANGUAGE,
             "active_nav": "reader",
         }
         return render(request, "reader/reader.html", context)
 
     def post(self, request: HttpRequest) -> HttpResponse:
+        # block=False у декоратора: он только ставит флаг, а решение принимаем
+        # здесь. При block=True Django вернул бы голую 403 — ни объяснения,
+        # ни предложения зарегистрироваться, ни правильного статуса.
+        if getattr(request, "limited", False):
+            context = {
+                "limit": text_limit_state(request),
+                "user_limit": user_text_limit(),
+            }
+            return render(request, "core/rate_limited.html", context, status=429)
+
         form = ReaderForm(request.POST)
 
         if not form.is_valid():
@@ -116,6 +144,10 @@ class ReaderView(View):
         return render(request, "reader/reader.html", context)
 
 
+@method_decorator(
+    ratelimit(group=LOOKUP_GROUP, key=RATE_KEY, rate=lookup_rate, block=False),
+    name="get",
+)
 class LookupView(View):
     """Returns dictionary data for one word, for the hover tooltip.
 
@@ -124,6 +156,13 @@ class LookupView(View):
     """
 
     def get(self, request: HttpRequest) -> JsonResponse:
+        if getattr(request, "limited", False):
+            # Здесь отвечаем JSON, а не страницей: ответ читает fetch из tooltip.js.
+            return JsonResponse(
+                {"data": None, "error": "rate_limited", "message": "Слишком много запросов."},
+                status=429,
+            )
+
         word = request.GET.get("word", "").strip()
         language = request.GET.get("lang", settings.DEFAULT_TRANSLATION_LANGUAGE)
 

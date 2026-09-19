@@ -1,0 +1,20 @@
+{% extends "accounts/base_card.html" %}
+{% comment %}
+Каркас для всех страниц allauth.
+
+В allauth 65 шаблона account/base.html больше нет: цепочка наследования каждой
+страницы заканчивается здесь. Поэтому одного перекрытого файла достаточно,
+чтобы вход, регистрация, сброс пароля и соцвход получили нашу шапку, подвал,
+шрифты и карточку — включая те страницы, которые мы не переписывали вручную.
+
+Блоки allauth переложены на наши: head_title -> title, extra_head -> extra_css,
+extra_body -> extra_js. Блок content не переопределяем — карточка приходит из
+accounts/base_card.html, а страницы allauth заполняют auth_body.
+{% endcomment %}
+
+{% block title %}{% block head_title %}Аккаунт{% endblock %} — Dúshū{% endblock %}
+
+{# block.super сохраняет ссылку на auth.css из base_card. #}
+{% block extra_css %}{{ block.super }}{% block extra_head %}{% endblock %}{% endblock %}
+
+{% block extra_js %}{% block extra_body %}{% endblock %}{% endblock %}

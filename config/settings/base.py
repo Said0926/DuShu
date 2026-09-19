@@ -36,8 +36,14 @@ DJANGO_APPS = [
     "django.contrib.staticfiles",
 ]
 
-# Сторонние пакеты (allauth, ratelimit) подключаются на этапе 6.
-THIRD_PARTY_APPS: list[str] = []
+THIRD_PARTY_APPS = [
+    # allauth — общая часть; account — вход по email и паролю;
+    # socialaccount и google — вход через Google.
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
+]
 
 LOCAL_APPS = [
     "apps.core",
@@ -58,6 +64,10 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Требование allauth: должен стоять после AuthenticationMiddleware.
+    # Он проверяет, что сессия не «переехала» на другого пользователя,
+    # и обслуживает многошаговые потоки вроде подтверждения email.
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -73,6 +83,11 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                # Настройки чтения нужны и главной, и «Чтению», и (позже)
+                # Shadowing, поэтому отдаём их всем шаблонам сразу.
+                "apps.accounts.context_processors.reading_settings",
+                # Остаток лимита показывает шапка, то есть нужен на каждой странице.
+                "apps.core.context_processors.quota",
             ],
         },
     },
@@ -97,6 +112,108 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
+
+AUTHENTICATION_BACKENDS = [
+    # Первый нужен админке, второй — входу по email и (позже) через Google.
+    # Django пробует их по очереди, пока один не вернёт пользователя.
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+
+# --- allauth ---
+
+# django.contrib.sites намеренно не подключён. Он нужен allauth только чтобы
+# построить абсолютный URL в письме, когда запроса под рукой нет; в обычном
+# потоке домен берётся из request. Без sites на одну сущность меньше, и ссылки
+# в письмах ведут на реальный хост, а не на example.com из фикстуры.
+
+# Куда LoginRequiredMixin отправляет анонимного посетителя. Значение по умолчанию
+# совпадает с этим адресом, но написать его явно дешевле, чем однажды искать,
+# почему редирект уехал не туда.
+LOGIN_URL = "account_login"
+LOGIN_REDIRECT_URL = "/"
+ACCOUNT_LOGOUT_REDIRECT_URL = "/"
+
+# Вход и регистрация — по email. Имена настроек новые: ACCOUNT_AUTHENTICATION_METHOD
+# и ACCOUNT_EMAIL_REQUIRED объявлены устаревшими в allauth 65.4 и 65.5.
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+
+# У нашей модели username нет вообще, и allauth нужно сказать об этом прямо:
+# иначе он попытается его заполнить и упадёт.
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+
+# Без подтверждённого адреса войти нельзя. Дело не в чистоте базы: у
+# зарегистрированных лимит обработок выше, чем у гостей, и без подтверждения
+# «зарегистрироваться» стоило бы выдуманного адреса и десяти секунд — то есть
+# повышенный лимит выдавался бы кому угодно сколько угодно раз. Заодно это
+# единственный способ сделать восстановление пароля работающим.
+#
+# В разработке письма печатаются в консоль:
+#   docker compose logs -f web
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+
+# После клика по ссылке пользователь сразу оказывается внутри, без повторного
+# ввода пароля. allauth делает это только если подтверждает тот же браузер,
+# в котором начиналась регистрация, — иначе по ссылке из чужих рук вошли бы
+# в чужой аккаунт.
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+
+# Свои формы нужны ровно для одного: убрать placeholder'ы, которые allauth
+# заполняет теми же словами, что и подписи полей. Его шаблоны рисуют поля
+# без подписей, наши — с подписями, и текст двоился бы в каждом поле.
+# --- вход через Google ---
+
+GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID", default="")
+GOOGLE_CLIENT_SECRET = env("GOOGLE_CLIENT_SECRET", default="")
+
+SOCIALACCOUNT_PROVIDERS: dict[str, dict] = {
+    "google": {
+        "SCOPE": ["profile", "email"],
+        # online: refresh token не запрашиваем. Он нужен, чтобы ходить в API
+        # Google от имени пользователя, а нам нужен только факт входа.
+        "AUTH_PARAMS": {"access_type": "online"},
+    }
+}
+
+# Ключи читаем из .env, а не из таблицы SocialApp в админке: секреты не уезжают
+# в базу, и после пересоздания базы ничего не нужно заводить руками.
+#
+# Секцию APP добавляем только когда ключи заданы: именно по её наличию allauth
+# считает провайдер настроенным. Без ключей он не попадёт в список провайдеров,
+# и кнопка «Войти через Google» просто не отрисуется — вместо того чтобы вести
+# на страницу с ошибкой.
+if GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET:
+    SOCIALACCOUNT_PROVIDERS["google"]["APP"] = {
+        "client_id": GOOGLE_CLIENT_ID,
+        "secret": GOOGLE_CLIENT_SECRET,
+        "key": "",
+    }
+
+# Аккаунт, созданный через Google, письмо с подтверждением не получает:
+# Google адрес уже проверил.
+SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
+
+# Что происходит, если человек сначала зарегистрировался по email и паролю,
+# а потом нажал «Войти через Google» с тем же адресом. По умолчанию allauth
+# упирается в «этот email занят» и предлагает тупик. С этими двумя настройками
+# он вместо этого пускает в существующий аккаунт и привязывает к нему Google.
+#
+# По умолчанию оба выключены намеренно: провайдер, который врёт про
+# подтверждённость адреса, вошёл бы в любой чужой аккаунт. Включать их можно
+# только для провайдеров, которым доверяешь полностью. Google такой; если
+# появится второй провайдер, это решение нужно пересмотреть.
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+
+ACCOUNT_FORMS = {
+    "login": "apps.accounts.forms.LoginForm",
+    "signup": "apps.accounts.forms.SignupForm",
+    "reset_password": "apps.accounts.forms.ResetPasswordForm",
+    "reset_password_from_key": "apps.accounts.forms.ResetPasswordKeyForm",
+    "change_password": "apps.accounts.forms.ChangePasswordForm",
+    "set_password": "apps.accounts.forms.SetPasswordForm",
+}
 
 # --- i18n ---
 
@@ -137,6 +254,29 @@ DEEPL_API_KEY = env("DEEPL_API_KEY", default="")
 # Сколько предложений отправлять в одном запросе к провайдеру.
 # У DeepL предел — 50 текстов на запрос.
 TRANSLATION_BATCH_SIZE = 50
+
+# --- лимиты запросов ---
+
+# django-ratelimit и allauth держат счётчики в кэше. LocMemCache живёт в памяти
+# процесса: перезапуск web обнуляет лимиты, а при нескольких воркерах каждый
+# считает свой. Для учебного проекта на одном процессе это честно; проду нужен
+# общий кэш — Redis или Memcached.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+    }
+}
+
+# Обработка текста — единственное, что стоит денег: каждая отправка это до
+# MAX_TEXT_LENGTH символов в DeepL при бесплатной квоте 500 000 в месяц.
+RATELIMIT_TEXT_GUEST = "5/h"
+RATELIMIT_TEXT_USER = "30/h"
+
+# Подсказки ходят только в локальную базу и не стоят ничего. Лимит здесь нужен
+# не ради денег, а чтобы словарь нельзя было вычитать целиком перебором,
+# поэтому он на два порядка мягче.
+RATELIMIT_LOOKUP_GUEST = "120/m"
+RATELIMIT_LOOKUP_USER = "300/m"
 
 # --- logging ---
 
