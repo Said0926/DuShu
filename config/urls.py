@@ -18,3 +18,6 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    # Кэш озвучки. В проде это работа nginx: он же отдаёт Range-запросы,
+    # без которых не работает перемотка внутри предложения.
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
