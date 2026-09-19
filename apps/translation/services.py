@@ -6,8 +6,9 @@ from collections.abc import Iterator
 from django.conf import settings
 from django.utils.module_loading import import_string
 
+from apps.chinese.services import sentence_hash
 from apps.translation.exceptions import TranslationError
-from apps.translation.models import SentenceTranslation, sentence_hash
+from apps.translation.models import SentenceTranslation
 from apps.translation.providers import TranslationProvider
 
 logger = logging.getLogger(__name__)

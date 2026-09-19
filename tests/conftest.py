@@ -1,9 +1,11 @@
 """Shared pytest fixtures."""
 
 from collections.abc import Iterator
+from pathlib import Path
 
 import pytest
 from allauth.account.models import EmailAddress
+from django.conf import LazySettings
 from django.core.cache import cache
 from django.test import Client
 
@@ -56,3 +58,15 @@ def clear_cache() -> Iterator[None]:
     cache.clear()
     yield
     cache.clear()
+
+
+@pytest.fixture(autouse=True)
+def media_root(tmp_path: Path, settings: LazySettings) -> Path:
+    """Send every file a test writes into its own temporary directory.
+
+    The speech cache stores real files through ``FileField``. Without this they
+    would pile up in the project's ``media/`` and leak between runs, so a test
+    could pass only because a previous run had left a file behind.
+    """
+    settings.MEDIA_ROOT = tmp_path
+    return tmp_path

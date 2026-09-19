@@ -22,6 +22,13 @@ pypinyin>=0.53                # пиньинь и тоны
 # --- внешние API (этап 5) ---
 requests>=2.32
 
+# --- озвучка (этап 9) ---
+# Неофициальный клиент к тому же движку, которым Edge читает страницы вслух:
+# голоса Microsoft Neural и события WordBoundary с таймингами, без ключа и аккаунта.
+# Тянет aiohttp (на его WebSocket всё и держится), certifi (корневые сертификаты),
+# typing-extensions и tabulate (нужен только CLI --list-voices, отдельно не отключается).
+edge-tts>=7.2.8
+
 # --- dev & CI ---
 pytest>=8.0
 pytest-django>=4.9

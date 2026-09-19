@@ -6,7 +6,7 @@ import pytest
 from django.test import override_settings
 
 from apps.translation.exceptions import TranslationError
-from apps.translation.models import SentenceTranslation, sentence_hash
+from apps.translation.models import SentenceTranslation
 from apps.translation.services import (
     get_provider,
     has_cached_translations,
@@ -149,14 +149,6 @@ class TestGetProvider:
             get_provider()
 
 
-def test_sentence_hash_ignores_surrounding_whitespace() -> None:
-    assert sentence_hash("你好。") == sentence_hash("  你好。\n")
-
-
-def test_sentence_hash_differs_for_different_text() -> None:
-    assert sentence_hash("你好。") != sentence_hash("再见。")
-
-
 class TestProviderContractViolations:
     """A provider that breaks its contract must not produce a 500."""
 
@@ -176,7 +168,7 @@ class TestProviderContractViolations:
             with pytest.raises(TranslationError):
                 translate_sentences(["一。", "二。"], "ru")
 
-    @override_settings(TRANSLATION_PROVIDER="apps.translation.models.sentence_hash")
+    @override_settings(TRANSLATION_PROVIDER="apps.chinese.services.sentence_hash")
     def test_setting_pointing_at_something_that_is_not_a_provider(self) -> None:
         """The path imports fine but calling it does not give a provider."""
         with pytest.raises(TranslationError, match="not a usable provider"):

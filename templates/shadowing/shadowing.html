@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% load static plural %}
+
+{% block title %}Shadowing — Dúshū{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/shadowing.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page{% if not sentences %} page--empty{% endif %}">
+
+  <header class="page__header">
+    <div>
+      <h1 class="page__title{% if text_title %} page__title--text{% endif %}">
+        {{ text_title|default:"Shadowing" }}
+      </h1>
+      {% if sentences %}
+        <p class="page__meta">{{ sentences|length }} {{ sentences|length|plural_ru:"предложение,предложения,предложений" }}</p>
+      {% endif %}
+    </div>
+    {% if sentences %}
+      <div class="page__actions">
+        {% if saved_id %}
+          {% include "includes/status_control.html" with text_pk=saved_id current=text_status %}
+        {% endif %}
+        {% comment %} Обратный переход в «Чтение»: тот же текст уезжает обычной
+           формой, поэтому эта страница ничего не знает про устройство «Чтения». {% endcomment %}
+        <form method="post" action="{% url 'reader:read' %}">
+          {% csrf_token %}
+          <input type="hidden" name="text" value="{{ source_text }}">
+          <input type="hidden" name="title" value="{{ text_title }}">
+          <input type="hidden" name="saved" value="{% if already_saved %}1{% endif %}">
+          <input type="hidden" name="saved_id" value="{{ saved_id|default_if_none:'' }}">
+          <input type="hidden" name="status" value="{{ text_status }}">
+          <button class="btn btn--primary" type="submit">Открыть в «Чтении»</button>
+        </form>
+      </div>
+    {% endif %}
+  </header>
+
+  {% if warning %}
+    <p class="notice">{{ warning }}</p>
+  {% endif %}
+
+  {% if not sentences %}
+    <p class="page__intro">
+      Вставьте китайский текст — каждое предложение будет озвучено, слово подсветится
+      в тот момент, когда оно звучит, а после фразы включится пауза, чтобы повторить её вслух.
+    </p>
+    {% include "includes/text_input_card.html" with label="Текст для shadowing" submit_label="Слушать →" shadowing_primary=True %}
+  {% else %}
+
+  {% comment %} Настройки несёт контейнер: pinyin-off и tones-off приходят от
+     сервера теми же классами, что в «Чтении». hints-off стоит всегда — подсказок
+     по словам здесь нет, и слово не должно выглядеть нажимаемым.
+     data-атрибуты — начальное состояние плеера. {% endcomment %}
+  <div class="shadowing hints-off {{ reading_off_classes }}"
+       id="shadowing"
+       data-pause-mode="{{ reading_settings.pauseMode }}"
+       data-repeats="{{ reading_settings.repeats }}">
+
+    {% comment %} Список предложений (DESIGN.md §7): номер, текст, длительность.
+       Кнопки, потому что по ним переходят к предложению. {% endcomment %}
+    <aside class="sentence-list panel">
+      <p class="settings__label">Предложения</p>
+      <ol class="sentence-list__items" id="sentence-list">
+        {% for sentence in sentences %}
+          <li>
+            <button class="sentence-row {% if forloop.first %}is-current{% endif %}"
+                    type="button"
+                    data-index="{{ forloop.counter0 }}">
+              <span class="sentence-row__badge">{{ sentence.number }}</span>
+              <span class="sentence-row__text">{{ sentence.text }}</span>
+              <span class="sentence-row__time">{{ sentence.duration_label }}</span>
+            </button>
+          </li>
+        {% endfor %}
+      </ol>
+    </aside>
+
+    <section class="stage canvas">
+
+      <div class="stage__status">
+        <span>Предложение <span id="current-number">1</span> из {{ sentences|length }}</span>
+        <span class="stage__repeat">
+          <span aria-hidden="true">↻</span>
+          Повтор <span id="current-repeat">1</span> / <span id="total-repeats">{{ reading_settings.repeats }}</span>
+        </span>
+      </div>
+
+      {% comment %} Все предложения лежат в разметке, видно текущее — его выбирает
+         класс is-current. Так плеер остаётся синхронным: ни аудио, ни тайминги
+         не надо догружать, и гонки загрузки с воспроизведением не существует. {% endcomment %}
+      <div class="stage__sentences">
+        {% for sentence in sentences %}
+          <p class="stage__sentence reader__sentence-line {% if forloop.first %}is-current{% endif %}"
+             data-index="{{ forloop.counter0 }}"
+             data-audio="{{ sentence.audio_url }}"
+             data-duration="{{ sentence.duration_ms }}">
+            {% for item in sentence.words %}
+              {% if item.word.kind == "chinese" %}
+                {% comment %} span, а не button: подсказок здесь нет, и двадцать
+                   кнопок-слов перед транспортом только мешали бы обходу по Tab. {% endcomment %}
+                <span class="word"{% if item.timing %} data-start="{{ item.timing.start_ms }}" data-end="{{ item.timing.end_ms }}"{% endif %}>{% for syllable in item.word.syllables %}{% if syllable.pinyin %}<ruby><span class="tone-{{ syllable.tone }}">{{ syllable.char }}</span><rt>{{ syllable.pinyin }}</rt></ruby>{% else %}<span class="latin">{{ syllable.char }}</span>{% endif %}{% endfor %}</span>
+              {% elif item.word.kind == "punct" %}
+                <span class="punct">{{ item.word.text }}</span>
+              {% else %}
+                <span class="latin">{{ item.word.text }}</span>
+              {% endif %}
+            {% endfor %}
+          </p>
+        {% endfor %}
+      </div>
+
+      {% comment %} progress, а не div с шириной: ширину пришлось бы писать из JS
+         инлайновым стилем, а по правилам проекта JS меняет только классы и
+         data-атрибуты. Здесь же меняется value — свойство элемента. {% endcomment %}
+      <div class="progress">
+        <span class="progress__time" id="time-current">0:00</span>
+        <progress class="progress__track"
+                  id="progress"
+                  value="0"
+                  max="{{ sentences.0.duration_ms }}"
+                  aria-label="Позиция в предложении"></progress>
+        <span class="progress__time" id="time-total">{{ sentences.0.duration_label }}</span>
+      </div>
+
+      <div class="transport">
+        <button class="transport__btn" type="button" id="prev" aria-label="Предыдущее предложение">
+          <span aria-hidden="true">←</span>
+        </button>
+        <button class="transport__btn" type="button" id="repeat" aria-label="Повторить предложение">
+          <span aria-hidden="true">↻</span>
+        </button>
+        {% comment %} Одна кнопка на play и pause: какая из иконок видна, решает
+           класс is-playing на контейнере, а не JS. {% endcomment %}
+        <button class="transport__btn transport__btn--main" type="button" id="play" aria-label="Слушать">
+          <span class="transport__icon-play" aria-hidden="true">▶</span>
+          <span class="transport__icon-pause" aria-hidden="true">❙❙</span>
+        </button>
+        <button class="transport__btn" type="button" id="next" aria-label="Следующее предложение">
+          <span aria-hidden="true">→</span>
+        </button>
+
+        <div class="segmented transport__speed" role="group" aria-label="Скорость" id="speed">
+          <button class="segmented__item" type="button" aria-pressed="false" data-value="0.5">0,5×</button>
+          <button class="segmented__item" type="button" aria-pressed="false" data-value="0.75">0,75×</button>
+          <button class="segmented__item is-active" type="button" aria-pressed="true" data-value="1">1×</button>
+          <button class="segmented__item" type="button" aria-pressed="false" data-value="1.25">1,25×</button>
+          <button class="segmented__item" type="button" aria-pressed="false" data-value="1.5">1,5×</button>
+        </div>
+      </div>
+
+      <hr class="settings__divider">
+
+      <div class="stage__settings">
+        <div class="stage__setting">
+          <p class="settings__label">Пауза после предложения</p>
+          <div class="segmented" role="group" aria-label="Пауза после предложения" id="pause-mode">
+            <button class="segmented__item {% if reading_settings.pauseMode == 'auto' %}is-active{% endif %}"
+                    type="button"
+                    aria-pressed="{% if reading_settings.pauseMode == 'auto' %}true{% else %}false{% endif %}"
+                    data-value="auto">авто ×1,5</button>
+            <button class="segmented__item {% if reading_settings.pauseMode == 'fixed' %}is-active{% endif %}"
+                    type="button"
+                    aria-pressed="{% if reading_settings.pauseMode == 'fixed' %}true{% else %}false{% endif %}"
+                    data-value="fixed">фикс. 2 с</button>
+          </div>
+        </div>
+
+        <div class="stage__setting">
+          <p class="settings__label">Повторов</p>
+          <div class="stepper" id="repeats">
+            <button class="stepper__btn" type="button" data-step="-1" aria-label="Меньше повторов">−</button>
+            <output class="stepper__value" id="repeats-value">{{ reading_settings.repeats }}</output>
+            <button class="stepper__btn" type="button" data-step="1" aria-label="Больше повторов">+</button>
+          </div>
+        </div>
+
+        <div class="stage__switches">
+          <button class="switch" type="button" role="switch"
+                  aria-checked="{{ reading_settings.pinyin|yesno:'true,false' }}"
+                  data-setting="pinyin">
+            <span>Пиньинь</span>
+            <span class="switch__track"><span class="switch__knob"></span></span>
+          </button>
+          <button class="switch" type="button" role="switch"
+                  aria-checked="{{ reading_settings.tones|yesno:'true,false' }}"
+                  data-setting="tones">
+            <span>Цвета тонов</span>
+            <span class="switch__track"><span class="switch__knob"></span></span>
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+    {% comment %} preload="none": предложений в тексте бывает много, и браузер не
+       должен тянуть их все сразу — файл запрашивается, когда до него доходит
+       очередь. {% endcomment %}
+    <audio id="player" preload="none"></audio>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+  {% if not sentences %}
+    <script src="{% static 'js/home.js' %}" defer></script>
+  {% endif %}
+  <script src="{% static 'js/player.js' %}" defer></script>
+{% endblock %}

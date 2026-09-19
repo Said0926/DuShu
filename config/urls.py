@@ -13,8 +13,12 @@ urlpatterns = [
     path("", include("apps.accounts.urls")),
     path("", include("apps.core.urls")),
     path("reader/", include("apps.reader.urls")),
+    path("shadowing/", include("apps.shadowing.urls")),
     path("library/", include("apps.library.urls")),
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    # Кэш озвучки. В проде это работа nginx: он же отдаёт Range-запросы,
+    # без которых не работает перемотка внутри предложения.
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
