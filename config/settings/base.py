@@ -253,6 +253,29 @@ DEEPL_API_KEY = env("DEEPL_API_KEY", default="")
 # У DeepL предел — 50 текстов на запрос.
 TRANSLATION_BATCH_SIZE = 50
 
+# --- лимиты запросов ---
+
+# django-ratelimit и allauth держат счётчики в кэше. LocMemCache живёт в памяти
+# процесса: перезапуск web обнуляет лимиты, а при нескольких воркерах каждый
+# считает свой. Для учебного проекта на одном процессе это честно; проду нужен
+# общий кэш — Redis или Memcached.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+    }
+}
+
+# Обработка текста — единственное, что стоит денег: каждая отправка это до
+# MAX_TEXT_LENGTH символов в DeepL при бесплатной квоте 500 000 в месяц.
+RATELIMIT_TEXT_GUEST = "5/h"
+RATELIMIT_TEXT_USER = "30/h"
+
+# Подсказки ходят только в локальную базу и не стоят ничего. Лимит здесь нужен
+# не ради денег, а чтобы словарь нельзя было вычитать целиком перебором,
+# поэтому он на два порядка мягче.
+RATELIMIT_LOOKUP_GUEST = "120/m"
+RATELIMIT_LOOKUP_USER = "300/m"
+
 # --- logging ---
 
 LOGGING = {
