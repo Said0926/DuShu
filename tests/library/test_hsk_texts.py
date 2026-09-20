@@ -46,6 +46,15 @@ def test_the_shipped_catalog_is_readable() -> None:
     read_catalog()
 
 
+def test_the_catalog_covers_every_level() -> None:
+    """All five shelves are filled.
+
+    Added once the last level was written: until then the catalog was being
+    filled one level at a time, and this would have failed the whole way.
+    """
+    assert {entry.level for entry in read_catalog()} == set(HSK_LEVELS)
+
+
 def test_every_level_in_the_catalog_holds_ten_texts() -> None:
     """Ten per level is the promise the library page is built around.
 
