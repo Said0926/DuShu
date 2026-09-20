@@ -21,6 +21,7 @@ It works without an account. Signing in only buys you saved texts and a higher h
 - [Quick start](#quick-start)
 - [Environment variables](#environment-variables)
 - [Dictionaries](#dictionaries)
+- [The HSK catalogue](#the-hsk-catalogue)
 - [How it is built](#how-it-is-built)
 - [Extending it](#extending-it)
 - [Commands](#commands)
@@ -45,11 +46,12 @@ repeats and speed from 0.5× to 1.5× are all adjustable.
 ![Shadowing](docs/screenshots/shadowing.png)
 
 **The rest.** A library of saved texts with collections and reading statuses, five shared HSK
-levels, sign-in by email and through Google, rate limiting, and display settings that follow the
+levels holding fifty ready-made texts, sign-in by email and through Google, rate limiting, and
+display settings that follow the
 reader between devices.
 
 Stack: Python 3.12, Django 5.2, PostgreSQL 16, Django templates and vanilla JS with no frontend
-framework, Docker, pytest, ruff, GitHub Actions. 461 tests.
+framework, Docker, pytest, ruff, GitHub Actions. 507 tests.
 
 ---
 
@@ -68,9 +70,11 @@ docker compose run --rm web python -c \
 
 docker compose up -d
 docker compose exec web python manage.py migrate
+docker compose exec web python manage.py load_hsk_texts
 ```
 
-That is it — http://localhost:8000.
+That is it — http://localhost:8000. The last command files fifty ready-made texts under the HSK
+levels, so the library does not greet you with empty shelves.
 
 **The project runs without a single API key**, with one caveat about translation. Speech works
 straight away: `edge-tts` is free and needs no account. Word hints appear once the dictionaries
@@ -90,7 +94,7 @@ TRANSLATION_PROVIDER=apps.translation.providers.dummy.DummyProvider
 Optionally:
 
 ```bash
-# Admin site: this is where catalogue texts for the HSK levels are added.
+# Admin site: for editing a shared text one at a time, without touching the catalogue file.
 docker compose exec web python manage.py createsuperuser
 
 # In development, mail (address confirmation, password reset) is printed to the log:
@@ -146,6 +150,56 @@ Both commands read `.gz` without unpacking it first and are safe to run twice. U
 needs `--replace`: without it changed entries are skipped as duplicates and stale ones survive.
 
 Importing BKRS takes a few minutes — there are millions of entries.
+
+---
+
+## The HSK catalogue
+
+The repository holds fifty ready-made texts, ten per level, from four sentences at HSK 1 to
+twelve at HSK 5. They are shared: they belong to nobody in particular and everyone who opens
+the library sees them.
+
+```bash
+docker compose exec web python manage.py load_hsk_texts
+```
+
+Safe to run again: a text is recognised by the fingerprint of its content. Editing a title is
+picked up on the next run, while editing the text itself makes a new one — the fingerprint
+differs. What the file no longer holds is removed by `--prune`, a separate flag because
+deleting a shared text takes every reader's progress for it along. `--level` loads one level
+and leaves its neighbours alone.
+
+The texts themselves live in `apps/library/data/hsk_texts.json`, a plain list:
+
+```json
+[{"level": 1, "title": "我的一天", "text": "我叫小明。我今天很忙。"}]
+```
+
+A file rather than a data migration: a migration has to keep meaning what it meant the day it
+was written, so fixing a typo would cost a new migration every time.
+
+No text uses vocabulary above its own level. For HSK 1 and HSK 2 that is checked by machine —
+150 and 300 words can be written out in full; above that the words were read by eye, because an
+invented list of 2500 words is worse than no list. What has to be checked is not the
+segmenter's tokens but their decomposition: jieba merges neighbouring words into one
+(今天上午, 八块钱), and no vocabulary list contains such a "word" although it is built entirely
+from words of the level.
+
+### Warming the caches
+
+```bash
+docker compose exec web python manage.py warm_catalog_cache
+```
+
+Translates and speaks the whole catalogue in advance. After that the shared texts open
+instantly and cost nobody their hourly limit: the limit counts work sent to a provider, and
+after warming there is none. The price is about 12,000 characters of the 500,000 monthly DeepL
+quota and a couple of minutes of synthesis, producing 23 minutes of audio and some 9 MB under
+`media/`.
+
+One text failing does not stop the run — the unofficial speech endpoint answers 503 from time
+to time, and whatever was missed is warmed by running the command again. And remember
+`media/`: it is not a named volume, so recreating the container wipes the audio.
 
 ---
 
@@ -257,6 +311,13 @@ docker compose exec web pytest tests/chinese -v       # one app's tests
 docker compose exec web ruff check .                  # linter
 docker compose exec web ruff format .                 # formatter
 docker compose down                                   # stop
+```
+
+The shared catalogue:
+
+```bash
+docker compose exec web python manage.py load_hsk_texts     # load, safe to repeat
+docker compose exec web python manage.py warm_catalog_cache # translate and speak in advance
 ```
 
 Clearing a cache is what you do when it holds results you no longer trust. A cache hit never

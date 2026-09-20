@@ -70,9 +70,7 @@ def test_warming_twice_asks_the_provider_nothing(catalog_text: SavedText, monkey
     call_command("warm_catalog_cache")
 
 
-def test_one_failing_text_does_not_stop_the_run(
-    catalog_text: SavedText, monkeypatch: Any
-) -> None:
+def test_one_failing_text_does_not_stop_the_run(catalog_text: SavedText, monkeypatch: Any) -> None:
     """A run of fifty texts must survive one 503 from an unofficial endpoint."""
     collection = Collection.objects.get(owner__isnull=True, hsk_level=2)
     SavedText.objects.create(

@@ -58,8 +58,8 @@ class Command(BaseCommand):
     def handle(self, *args: Any, **options: Any) -> None:
         level: int | None = options["level"]
         levels = {level} if level else None
-        languages = [options["language"]] if options["language"] else list(
-            settings.TRANSLATION_LANGUAGES
+        languages = (
+            [options["language"]] if options["language"] else list(settings.TRANSLATION_LANGUAGES)
         )
 
         texts = catalog_texts(levels)
