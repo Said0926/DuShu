@@ -67,6 +67,9 @@
     </span>
   </footer>
 
+  {# Плашка ожидания. Скрыта, пока busy.js не повесит на неё класс. #}
+  {% include "includes/busy_overlay.html" %}
+
   {% comment %} defer — скрипт скачивается параллельно с разбором HTML и выполняется после него,
      поэтому DOM уже доступен и не нужен обработчик DOMContentLoaded. {% endcomment %}
   {% comment %} settings-store.js идёт первым: остальные скрипты читают из него
@@ -83,6 +86,7 @@
   <script src="{% static 'js/csrf.js' %}" defer></script>
   <script src="{% static 'js/settings-store.js' %}" defer></script>
   <script src="{% static 'js/controls.js' %}" defer></script>
+  <script src="{% static 'js/busy.js' %}" defer></script>
   {% block extra_js %}{% endblock %}
 </body>
 </html>

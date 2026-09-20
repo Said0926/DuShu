@@ -45,7 +45,8 @@
         <button class="btn btn--primary"
                 type="submit"
                 form="language-form"
-                formaction="{% url 'shadowing:listen' %}">Открыть в Shadowing</button>
+                formaction="{% url 'shadowing:listen' %}"
+                data-busy="Готовим Shadowing: озвучиваем предложения">Открыть в Shadowing</button>
       </div>
     {% endif %}
   </header>
@@ -127,7 +128,11 @@
       <p class="settings__label">Язык перевода</p>
       {% comment %} Смена языка — единственная настройка, которой нужен сервер:
          меняется и перевод предложений, и источник подсказок. {% endcomment %}
-      <form method="post" action="{% url 'reader:read' %}" id="language-form">
+      {% comment %} data-busy на самой форме, а не на кнопке: сегменты языка —
+         это type="button", форму отправляет requestSubmit() из reader.js,
+         и нажатой кнопки у такой отправки нет. {% endcomment %}
+      <form method="post" action="{% url 'reader:read' %}" id="language-form"
+            data-busy="Переводим предложения заново">
         {% csrf_token %}
         {# id нужен library.js: из этого поля он берёт текст для сохранения. #}
         <input type="hidden" name="text" id="source-text" value="{{ source_text }}">

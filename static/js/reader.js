@@ -104,7 +104,10 @@ if (readerElement && store) {
       }
       languageValue.value = event.detail.value;
       store.writeSetting("language", event.detail.value);
-      languageForm.submit();
+      // requestSubmit, а не submit: второй отправляет форму молча, без события
+      // submit, и плашка ожидания из busy.js о смене языка не узнала бы —
+      // хотя ждать здесь столько же, весь текст переводится заново.
+      languageForm.requestSubmit();
     });
   }
 }
