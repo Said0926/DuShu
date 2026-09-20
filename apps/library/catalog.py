@@ -276,3 +276,21 @@ def _prune(collections: Iterable[Collection], *, keep: set[str]) -> int:
     deleted = doomed.count()
     doomed.delete()
     return deleted
+
+
+def catalog_texts(levels: set[int] | None = None) -> list[SavedText]:
+    """Return the shared texts, newest shelf last.
+
+    Args:
+        levels: Only these HSK levels, or ``None`` for all of them.
+
+    Returns:
+        Every catalog text, ordered by level and then by the order it was loaded
+        in, which is the order of the file.
+    """
+    texts = SavedText.objects.filter(owner__isnull=True, collection__isnull=False)
+
+    if levels is not None:
+        texts = texts.filter(collection__hsk_level__in=levels)
+
+    return list(texts.select_related("collection").order_by("collection__hsk_level", "pk"))
