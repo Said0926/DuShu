@@ -27,3 +27,11 @@ class CollectionLimitError(ValueError):
 
 class InvalidStatusError(ValueError):
     """No such reading status."""
+
+
+class CatalogError(ValueError):
+    """The shared HSK catalog cannot be read or loaded.
+
+    Always a problem with the file in the repository or with the database it is
+    being loaded into — never something a reader of the site can cause.
+    """
