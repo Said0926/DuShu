@@ -65,6 +65,19 @@ def test_the_script_is_loaded(client: Client) -> None:
     assert "js/busy.js" in html
 
 
+def test_the_styles_come_from_their_own_file(client: Client) -> None:
+    """Not from base.css, and that is the whole point.
+
+    The markup is rendered fresh on every response while a stylesheet sits in
+    the visitor's cache. Put these rules in base.css and everyone who had been
+    to the site before would see the overlay as plain text under the footer
+    until their copy expired — the rules that hide it are not in it.
+    """
+    html = client.get(HOME).content.decode()
+
+    assert "css/busy.css" in html
+
+
 def test_the_input_card_marks_both_buttons(client: Client) -> None:
     """Both destinations wait on the server, so both say so."""
     html = client.get(HOME).content.decode()
