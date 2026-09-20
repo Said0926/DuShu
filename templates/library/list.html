@@ -91,13 +91,15 @@
                      не зная про библиотеку. {% endcomment %}
                   <input type="hidden" name="saved_id" value="{{ row.text.pk }}">
                   <input type="hidden" name="status" value="{{ row.status }}">
-                  <button class="btn btn--primary" type="submit">Читать</button>
+                  <button class="btn btn--primary" type="submit"
+                          data-busy="Готовим «Чтение»: переводим предложения">Читать</button>
                   {% comment %} Та же форма, другой адрес: formaction на кнопке
                      перебивает action формы, поэтому скрытые поля с текстом,
                      заголовком и статусом не приходится дублировать. {% endcomment %}
                   <button class="btn btn--ghost"
                           type="submit"
-                          formaction="{% url 'shadowing:listen' %}">Shadowing</button>
+                          formaction="{% url 'shadowing:listen' %}"
+                          data-busy="Готовим Shadowing: озвучиваем предложения">Shadowing</button>
                 </form>
 
                 {% comment %} Общий текст принадлежит всем сразу, поэтому менять

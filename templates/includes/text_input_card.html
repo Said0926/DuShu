@@ -40,17 +40,23 @@
       {% comment %} Обе кнопки отправляют одну и ту же форму, различаются только
          адресом: formaction на кнопке перебивает action формы. Поэтому переход
          в любой из двух режимов не требует ни второй формы, ни строчки JS.
+         Подпись ожидания едет на кнопке по той же причине: адрес выбирает кнопка,
+         а ждут по двум адресам разного — перевода или озвучки.
          shadowing_primary меняет, какая кнопка главная — на странице Shadowing
          главное действие «Слушать», а не «Читать». {% endcomment %}
       {% if shadowing_primary %}
         <button class="btn btn--ghost" type="submit"
-                formaction="{% url 'reader:read' %}">Чтение</button>
+                formaction="{% url 'reader:read' %}"
+                data-busy="Готовим «Чтение»: переводим предложения">Чтение</button>
         <button class="btn btn--primary" type="submit"
-                formaction="{% url 'shadowing:listen' %}">{{ submit_label|default:"Слушать →" }}</button>
+                formaction="{% url 'shadowing:listen' %}"
+                data-busy="Готовим Shadowing: озвучиваем предложения">{{ submit_label|default:"Слушать →" }}</button>
       {% else %}
         <button class="btn btn--ghost" type="submit"
-                formaction="{% url 'shadowing:listen' %}">Shadowing</button>
-        <button class="btn btn--primary" type="submit">{{ submit_label|default:"Читать →" }}</button>
+                formaction="{% url 'shadowing:listen' %}"
+                data-busy="Готовим Shadowing: озвучиваем предложения">Shadowing</button>
+        <button class="btn btn--primary" type="submit"
+                data-busy="Готовим «Чтение»: переводим предложения">{{ submit_label|default:"Читать →" }}</button>
       {% endif %}
     </div>
   </div>

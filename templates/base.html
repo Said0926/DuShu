@@ -14,6 +14,8 @@
   <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
   <link rel="stylesheet" href="{% static 'css/text.css' %}">
+  {# busy.css отдельным файлом намеренно — причина в шапке самого файла. #}
+  <link rel="stylesheet" href="{% static 'css/busy.css' %}">
   {% block extra_css %}{% endblock %}
 </head>
 <body{% if settings_on_server %} data-settings-url="{% url 'accounts:settings' %}"{% endif %}>
@@ -67,6 +69,9 @@
     </span>
   </footer>
 
+  {# Плашка ожидания. Скрыта, пока busy.js не повесит на неё класс. #}
+  {% include "includes/busy_overlay.html" %}
+
   {% comment %} defer — скрипт скачивается параллельно с разбором HTML и выполняется после него,
      поэтому DOM уже доступен и не нужен обработчик DOMContentLoaded. {% endcomment %}
   {% comment %} settings-store.js идёт первым: остальные скрипты читают из него
@@ -83,6 +88,7 @@
   <script src="{% static 'js/csrf.js' %}" defer></script>
   <script src="{% static 'js/settings-store.js' %}" defer></script>
   <script src="{% static 'js/controls.js' %}" defer></script>
+  <script src="{% static 'js/busy.js' %}" defer></script>
   {% block extra_js %}{% endblock %}
 </body>
 </html>
